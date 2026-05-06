@@ -1,0 +1,3130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jacques Cousteau: Depths of Discovery</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --deep: #020c1b;
+    --abyss: #010810;
+    --ocean1: #0a2a4a;
+    --ocean2: #0e3d6b;
+    --ocean3: #1565c0;
+    --teal: #00bcd4;
+    --seafoam: #4dd0e1;
+    --gold: #ffd700;
+    --gold2: #ffb300;
+    --coral: #ff6b6b;
+    --green: #00e676;
+    --white: #e8f4f8;
+    --text: #b0d4e8;
+    --hp-red: #ef5350;
+    --xp-gold: #ffc107;
+    --shadow: rgba(0,188,212,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--abyss);
+    color: var(--white);
+    font-family: 'Crimson Text', serif;
+    overflow: hidden;
+    user-select: none;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ========= SCREENS ========= */
+  .screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
+  .screen.active { display: flex; }
+
+  /* ========= TITLE SCREEN ========= */
+  #title-screen {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 50% 60%, #0a2a4a 0%, #010810 70%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bubbles { position: absolute; inset: 0; pointer-events: none; }
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0,188,212,0.4);
+    background: rgba(0,188,212,0.05);
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0% { transform: translateY(110vh) scale(1); opacity: 0.6; }
+    100% { transform: translateY(-10vh) scale(1.1); opacity: 0; }
+  }
+
+  .wave-bg {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 200px;
+    background: linear-gradient(180deg, transparent, rgba(21,101,192,0.3));
+    animation: wave 4s ease-in-out infinite alternate;
+  }
+  @keyframes wave { 0% { transform: scaleX(1); } 100% { transform: scaleX(1.05) translateX(-2%); } }
+
+  .title-logo { text-align: center; z-index: 10; }
+  .title-logo h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(255,215,0,0.6), 0 2px 8px #000;
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+  .title-logo .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.9rem, 2vw, 1.4rem);
+    color: var(--seafoam);
+    letter-spacing: 0.3em;
+    margin-top: 0.5rem;
+    text-shadow: 0 0 20px var(--teal);
+  }
+  .title-logo .divider {
+    width: 200px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 1.5rem auto;
+  }
+
+  .btn {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    padding: 0.8rem 2.5rem;
+    border: 2px solid var(--gold);
+    background: rgba(255,215,0,0.1);
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    margin: 0.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    z-index: -1;
+  }
+  .btn:hover { color: var(--deep); text-shadow: none; }
+  .btn:hover::before { transform: translateX(0); }
+  .btn.teal { border-color: var(--teal); background: rgba(0,188,212,0.1); color: var(--teal); }
+  .btn.teal::before { background: var(--teal); }
+
+  .title-diver { font-size: 5rem; margin-bottom: 1rem; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+  /* ========= GAME SCREEN ========= */
+  #game-screen { flex-direction: column; }
+
+  /* HUD */
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(2,12,27,0.95);
+    border-bottom: 2px solid var(--ocean2);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .hud-avatar { font-size: 1.8rem; }
+  .hud-name { font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.9rem; }
+  .hud-bars { display: flex; flex-direction: column; gap: 3px; min-width: 140px; }
+  .bar-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; }
+  .bar-label { width: 22px; color: var(--text); }
+  .bar-bg { flex: 1; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s; }
+  .hp-fill { background: linear-gradient(90deg, var(--hp-red), #ff8a80); }
+  .xp-fill { background: linear-gradient(90deg, var(--xp-gold), #ffe082); }
+  .bar-val { font-size: 0.7rem; color: var(--text); min-width: 50px; }
+  .hud-stats { display: flex; gap: 1rem; margin-left: auto; flex-wrap: wrap; }
+  .stat-chip {
+    background: rgba(10,42,74,0.8);
+    border: 1px solid var(--ocean2);
+    border-radius: 4px;
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .stat-chip .icon { font-size: 1rem; }
+
+  /* GAME AREA */
+  #game-area {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* CANVAS */
+  #game-canvas { flex: 1; cursor: crosshair; background: var(--deep); }
+
+  /* SIDE PANEL */
+  #side-panel {
+    width: 260px;
+    background: rgba(2,12,27,0.97);
+    border-left: 2px solid var(--ocean2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .panel-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--ocean2);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+  }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); background: rgba(0,188,212,0.05); }
+  .tab-btn:hover { color: var(--seafoam); }
+  .tab-content { display: none; flex: 1; overflow-y: auto; padding: 0.75rem; }
+  .tab-content.active { display: block; }
+  .tab-content::-webkit-scrollbar { width: 4px; }
+  .tab-content::-webkit-scrollbar-track { background: transparent; }
+  .tab-content::-webkit-scrollbar-thumb { background: var(--ocean2); border-radius: 2px; }
+
+  .panel-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--ocean1);
+  }
+
+  /* LOG */
+  #combat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text);
+  }
+  .log-entry { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); line-height: 1.3; }
+  .log-entry.dmg { color: var(--coral); }
+  .log-entry.heal { color: var(--green); }
+  .log-entry.xp { color: var(--xp-gold); }
+  .log-entry.treasure { color: var(--gold); }
+  .log-entry.info { color: var(--seafoam); }
+
+  /* INVENTORY */
+  .inv-section { margin-bottom: 1rem; }
+  .inv-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--ocean1);
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .inv-item:hover { background: rgba(0,188,212,0.1); }
+  .inv-item .item-icon { font-size: 1.2rem; }
+  .inv-item .item-info { flex: 1; }
+  .inv-item .item-name { color: var(--white); font-size: 0.8rem; }
+  .inv-item .item-desc { color: var(--text); font-size: 0.7rem; }
+  .inv-item .item-qty { color: var(--gold); font-size: 0.75rem; }
+
+  /* UPGRADES */
+  .upgrade-card {
+    border: 1px solid var(--ocean2);
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 8px;
+    background: rgba(10,42,74,0.4);
+  }
+  .upgrade-card h3 { font-family: 'Cinzel', serif; font-size: 0.8rem; color: var(--seafoam); margin-bottom: 4px; }
+  .upgrade-card p { font-size: 0.75rem; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+  .upgrade-card .cost { font-size: 0.75rem; color: var(--gold); margin-bottom: 4px; }
+  .upgrade-card .upgrade-btn {
+    width: 100%;
+    padding: 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    border: 1px solid var(--gold);
+    background: rgba(255,215,0,0.08);
+    color: var(--gold);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    letter-spacing: 0.08em;
+  }
+  .upgrade-card .upgrade-btn:hover:not(:disabled) { background: var(--gold); color: var(--deep); }
+  .upgrade-card .upgrade-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .upgrade-card .owned { color: var(--green); font-size: 0.7rem; }
+
+  /* COMBAT MODAL */
+  #combat-modal {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(1,8,16,0.92);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  #combat-modal.active { display: flex; }
+  .combat-box {
+    width: 520px;
+    max-width: 95vw;
+    border: 2px solid var(--teal);
+    background: var(--deep);
+    border-radius: 4px;
+    padding: 1.5rem;
+    box-shadow: 0 0 60px rgba(0,188,212,0.3);
+  }
+  .combat-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    letter-spacing: 0.1em;
+  }
+  .combatants {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    margin-bottom: 1.5rem;
+  }
+  .combatant { text-align: center; }
+  .combatant .emoji { font-size: 3rem; animation: float 2s ease-in-out infinite; }
+  .combatant .c-name { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--white); margin-top: 4px; }
+  .combatant .c-hp { font-size: 0.8rem; color: var(--text); }
+  .combatant .c-hp-bar { width: 100px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .combatant .c-hp-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+  .vs-text { font-family: 'Cinzel', serif; font-size: 1.5rem; color: var(--coral); text-shadow: 0 0 20px var(--coral); }
+  .combat-log-mini {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--ocean1);
+    border-radius: 4px;
+    padding: 8px;
+    height: 80px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .combat-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .action-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 0.6rem 1rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    border: 1px solid;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .action-btn.attack { border-color: var(--coral); color: var(--coral); }
+  .action-btn.attack:hover { background: var(--coral); color: var(--deep); }
+  .action-btn.special { border-color: var(--gold); color: var(--gold); }
+  .action-btn.special:hover { background: var(--gold); color: var(--deep); }
+  .action-btn.defend { border-color: var(--teal); color: var(--teal); }
+  .action-btn.defend:hover { background: var(--teal); color: var(--deep); }
+  .action-btn.flee { border-color: var(--text); color: var(--text); }
+  .action-btn.flee:hover { background: var(--text); color: var(--deep); }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* TOOLTIP */
+  #tooltip {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    background: rgba(2,12,27,0.97);
+    border: 1px solid var(--teal);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    color: var(--white);
+    max-width: 200px;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0,188,212,0.3);
+  }
+
+  /* NOTIFICATION */
+  .notif {
+    position: absolute;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    text-shadow: 0 0 20px var(--gold);
+    pointer-events: none;
+    z-index: 50;
+    animation: notif-rise 2s ease-out forwards;
+  }
+  @keyframes notif-rise {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-60px); }
+  }
+
+  /* HELP */
+  .help-text { font-size: 0.78rem; color: var(--text); line-height: 1.7; }
+  .help-text strong { color: var(--seafoam); }
+  .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px; }
+  .ctrl { background: rgba(10,42,74,0.5); padding: 4px 6px; border-radius: 3px; font-size: 0.73rem; }
+  .ctrl span { color: var(--gold); }
+
+  /* LEVEL UP */
+  .level-banner {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 60;
+    text-align: center;
+    animation: levelup 2.5s ease-out forwards;
+  }
+  @keyframes levelup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+  }
+  .level-banner h2 { font-family: 'Cinzel', serif; font-size: 2.5rem; color: var(--gold); text-shadow: 0 0 40px var(--gold); }
+  .level-banner p { color: var(--seafoam); font-size: 1rem; margin-top: 4px; }
+
+  /* Scrollbar global */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--abyss); }
+  ::-webkit-scrollbar-thumb { background: var(--ocean2); border-radius: 3px; }
+
+  @media (max-width: 700px) {
+    #side-panel { width: 200px; }
+    .combat-box { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ======= TITLE SCREEN ======= -->
+<div id="title-screen" class="screen active">
+  <div class="bubbles" id="bubbles"></div>
+  <div class="wave-bg"></div>
+  <div class="title-logo">
+    <div class="title-diver">🤿</div>
+    <h1>JACQUES COUSTEAU</h1>
+    <div class="subtitle">✦ Depths of Discovery ✦</div>
+    <div class="divider"></div>
+    <p style="font-size:1rem;color:var(--text);max-width:380px;text-align:center;margin:0 auto 1.5rem;line-height:1.6;">
+      Explore the ocean depths, capture fearsome sea creatures for science, and collect ancient treasure to upgrade your vessel.
+    </p>
+    <div>
+      <button class="btn" onclick="startGame()">⚓ Begin Voyage</button>
+    </div>
+    <div style="margin-top:1rem;font-size:0.8rem;color:var(--text);">
+      Click to move · Click creatures to capture · Collect treasure chests
+    </div>
+  </div>
+</div>
+
+<!-- ======= GAME SCREEN ======= -->
+<div id="game-screen" class="screen">
+
+  <!-- HUD -->
+  <div id="hud">
+    <canvas id="hud-diver-canvas" width="40" height="48" style="vertical-align:middle;margin-right:2px"></canvas>
+    <div>
+      <div class="hud-name" id="hud-name">Jacques Cousteau</div>
+      <div style="font-size:0.7rem;color:var(--seafoam)">Lvl <span id="hud-level">1</span> · Ocean Explorer</div>
+    </div>
+    <div class="hud-bars">
+      <div class="bar-wrap">
+        <div class="bar-label">HP</div>
+        <div class="bar-bg"><div class="bar-fill hp-fill" id="hp-bar"></div></div>
+        <div class="bar-val" id="hp-val">100/100</div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label">XP</div>
+        <div class="bar-bg"><div class="bar-fill xp-fill" id="xp-bar"></div></div>
+        <div class="bar-val" id="xp-val">0/100</div>
+      </div>
+    </div>
+    <div class="hud-stats">
+      <div class="stat-chip"><span class="icon">⚔️</span> ATK: <strong id="stat-atk">12</strong></div>
+      <div class="stat-chip"><span class="icon">🛡️</span> DEF: <strong id="stat-def">5</strong></div>
+      <div class="stat-chip"><span class="icon">💰</span> Gold: <strong id="stat-gold">0</strong></div>
+      <div class="stat-chip"><span class="icon">💎</span> Gems: <strong id="stat-gems">0</strong></div>
+    </div>
+  </div>
+
+  <!-- GAME AREA -->
+  <div id="game-area">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- COMBAT MODAL -->
+    <div id="combat-modal">
+      <div class="combat-box">
+        <div class="combat-title" id="combat-title">🪤 CAPTURE ATTEMPT!</div>
+        <div class="combatants">
+          <div class="combatant">
+            <div class="emoji"><canvas id="combat-diver-canvas" width="56" height="68" style="vertical-align:middle"></canvas></div>
+            <div class="c-name">Jacques</div>
+            <div class="c-hp" id="player-hp-text">100/100</div>
+            <div class="c-hp-bar"><div class="c-hp-fill hp-fill" id="player-combat-hp" style="width:100%"></div></div>
+          </div>
+          <div class="vs-text">VS</div>
+          <div class="combatant">
+            <div class="emoji" id="enemy-emoji">🦈</div>
+            <div class="c-name" id="enemy-name-text">Shark</div>
+            <div class="c-hp" id="enemy-hp-text">80/80</div>
+            <div class="c-hp-bar"><div class="c-hp-fill" id="enemy-combat-hp" style="width:100%;background:linear-gradient(90deg,#ef5350,#ff8a80)"></div></div>
+          </div>
+        </div>
+        <div class="combat-log-mini" id="combat-log-mini"></div>
+        <div class="combat-actions">
+          <button class="action-btn attack" onclick="combatAction('attack')">🤺 Stun</button>
+          <button class="action-btn special" id="special-btn" onclick="combatAction('special')">🕸️ Net Strike</button>
+          <button class="action-btn defend" onclick="combatAction('defend')">🛡️ Defend</button>
+          <button class="action-btn flee" onclick="combatAction('flee')">🏃 Retreat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL UP BANNER -->
+    <div class="level-banner" id="level-banner">
+      <h2>⭐ LEVEL UP! ⭐</h2>
+      <p id="level-banner-text">You reached Level 2!</p>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div id="side-panel">
+      <div class="panel-tabs">
+        <button class="tab-btn active" onclick="switchTab('log')">📜 Log</button>
+        <button class="tab-btn" onclick="switchTab('inv')">🎒 Items</button>
+        <button class="tab-btn" onclick="switchTab('upgrades')">⚙️ Upgrade</button>
+        <button class="tab-btn" onclick="switchTab('help')">❓</button>
+      </div>
+      <div class="tab-content active" id="tab-log">
+        <div class="panel-title">Adventure Log</div>
+        <div id="combat-log"></div>
+      </div>
+      <div class="tab-content" id="tab-inv">
+        <div class="panel-title">Inventory</div>
+        <div class="inv-section">
+          <div style="font-size:0.75rem;color:var(--seafoam);margin-bottom:6px">CONSUMABLES</div>
+          <div id="inv-consumables"></div>
+        </div>
+        <div class="inv-section">
+          <div style="font-size:0.75rem;color:var(--seafoam);margin-bottom:6px">TREASURES</div>
+          <div id="inv-treasures"></div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-upgrades">
+        <div class="panel-title">Upgrades</div>
+        <div id="upgrades-list"></div>
+      </div>
+      <div class="tab-content" id="tab-help">
+        <div class="panel-title">How to Play</div>
+        <div class="help-text">
+          <p>Welcome aboard, <strong>Captain Cousteau</strong>! Explore the ocean depths and become the greatest marine explorer.</p>
+          <br>
+          <p><strong>Controls</strong></p>
+          <div class="controls-grid">
+            <div class="ctrl"><span>Click</span> water → Move</div>
+            <div class="ctrl"><span>Click</span> creature → Capture</div>
+            <div class="ctrl"><span>Click</span> chest → Loot</div>
+            <div class="ctrl"><span>WASD</span> or arrows → Move</div>
+          </div>
+          <br>
+          <p><strong>Combat</strong></p>
+          <p>Engage sea creatures in turn-based capture encounters. Use <strong>Stun</strong> to weaken the creature, <strong>Net Strike</strong> for a powerful throw (ready every 3 turns), <strong>Defend</strong> to reduce incoming damage, or <strong>Retreat</strong> to escape.</p>
+          <br>
+          <p><strong>Progression</strong></p>
+          <p>Capture creatures to earn XP and gold. Level up to increase your stats. Collect gems from rare chests and use gold/gems to <strong>Upgrade</strong> your boat and submarine.</p>
+          <br>
+          <p><strong>🏠 Proteus Station</strong></p>
+          <p>Your underwater base of operations sits on the ocean floor. Swim into it to automatically restore your HP to full. The station has a <strong>5-minute recharge cooldown</strong> between heals. Look for the blue marker on the minimap to find it.</p>
+          <br>
+          <p><strong>Creatures to Capture</strong></p>
+          <p>🦈 Shark · 🐙 Octopus · 🦑 Giant Squid · 🐡 Pufferfish · 🦀 Giant Crab · 🐠 Piranha School · 🐋 Whale</p>
+          <br>
+          <p><strong>☠ Boss Creatures</strong></p>
+          <p>Rare, devastating creatures roam the deep. They pulse with a glowing aura and appear on the minimap as coloured dots. Defeating them rewards huge XP, gold, and gems — but they hit hard. Stock up on potions before engaging!</p>
+          <p style="margin-top:4px">🐉 Leviathan · 👾 Kraken King · 🦞 Colossus Crab · 🎣 Abyssal Anglerfish · 🌊 Ghost Whale</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= NAVAL BATTLE SCREEN ======= -->
+<div id="naval-screen" class="screen" style="flex-direction:column;background:#0a1628;overflow:hidden;">
+  <!-- Top HUD bar -->
+  <div id="naval-hud" style="display:flex;align-items:center;gap:1rem;padding:0.5rem 1rem;background:rgba(0,0,0,0.7);border-bottom:2px solid #ffd700;flex-shrink:0;flex-wrap:wrap;min-height:52px;">
+    <span style="font-size:1.4rem">⚓</span>
+    <div>
+      <div style="font-family:'Cinzel',serif;color:#ffd700;font-size:0.9rem;letter-spacing:0.1em">NAVAL ENGAGEMENT — FRENCH NAVY 1940s</div>
+      <div style="font-size:0.7rem;color:var(--text)">Sink enemy warships to earn bonus XP and gold!</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+      <div class="stat-chip">⏱ <strong id="naval-timer">60</strong>s</div>
+      <div class="stat-chip">🚢 <strong id="naval-sunk">0</strong> sunk</div>
+      <div class="stat-chip">⭐ <strong id="naval-xp">0</strong> XP</div>
+      <div class="stat-chip">💰 <strong id="naval-gold-earned">0</strong></div>
+    </div>
+  </div>
+  <!-- Canvas area — takes all remaining space -->
+  <div id="naval-canvas-wrap" style="flex:1;overflow:hidden;position:relative;min-height:0;">
+    <canvas id="naval-canvas" style="display:block;width:100%;height:100%;"></canvas>
+  </div>
+  <!-- Bottom controls — always visible, never pushed off -->
+  <div id="naval-controls" style="display:flex;justify-content:center;align-items:center;gap:0.6rem;padding:0.5rem 0.8rem;background:rgba(0,0,0,0.75);border-top:2px solid #ffd700;flex-shrink:0;flex-wrap:wrap;min-height:56px;">
+    <button class="btn" onclick="navalFire()" style="border-color:#ffd700;color:#ffd700;padding:0.5rem 1.2rem;margin:0;">🔫 Fire Cannon</button>
+    <button class="btn teal" onclick="navalMove(-1)" style="padding:0.5rem 1rem;margin:0;">◀ Port</button>
+    <button class="btn teal" onclick="navalMove(1)" style="padding:0.5rem 1rem;margin:0;">Starboard ▶</button>
+    <button class="btn" onclick="exitNaval()" style="border-color:#ef5350;color:#ef5350;padding:0.5rem 1rem;margin:0;">🏳 Retreat</button>
+    <div style="font-size:0.72rem;color:var(--text);text-align:center;width:100%;margin-top:2px;">WASD / Arrows to move · Space or W to fire</div>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<!-- ======= PROTEUS INTERIOR SCREEN ======= -->
+<div id="proteus-screen" class="screen" style="flex-direction:column;background:radial-gradient(ellipse at 50% 30%, #0d2b3e 0%, #040e18 100%);overflow:hidden;">
+
+  <!-- Interior top bar -->
+  <div style="display:flex;align-items:center;gap:1rem;padding:0.6rem 1.2rem;background:rgba(0,0,0,0.6);border-bottom:2px solid #4fc3f7;flex-shrink:0;">
+    <span style="font-size:1.4rem">🏠</span>
+    <div>
+      <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:1rem;letter-spacing:0.1em">PROTEUS STATION — INTERIOR</div>
+      <div style="font-size:0.72rem;color:var(--text)">Depth: 847m · Pressure: Nominal · Life Support: Online</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+      <div class="stat-chip"><span class="icon">❤️</span> <strong id="p-hp-label">100/100</strong></div>
+      <div class="stat-chip"><span class="icon">💰</span> <strong id="p-gold-label">0</strong></div>
+      <div class="stat-chip"><span class="icon">💎</span> <strong id="p-gems-label">0</strong></div>
+      <button class="btn teal" onclick="exitProteus()" style="padding:0.4rem 1.2rem;font-size:0.8rem">🤿 Dive Out</button>
+    </div>
+  </div>
+
+  <!-- Interior main area -->
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- Central room canvas -->
+    <canvas id="proteus-canvas" style="flex:1;background:transparent;"></canvas>
+
+    <!-- Interior side panel -->
+    <div style="width:280px;background:rgba(2,12,27,0.97);border-left:2px solid #1565c0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;">
+      <div style="display:flex;border-bottom:2px solid #1565c0;">
+        <button class="tab-btn active" id="pt-tab-status" onclick="switchProteusTab('status',this)">📊 Status</button>
+        <button class="tab-btn" id="pt-tab-log" onclick="switchProteusTab('log',this)">📜 Log</button>
+        <button class="tab-btn" id="pt-tab-inv" onclick="switchProteusTab('inv',this)">🎒 Items</button>
+        <button class="tab-btn" id="pt-tab-about" onclick="switchProteusTab('about',this)">ℹ️ About</button>
+      </div>
+
+      <!-- Status tab -->
+      <div id="proteus-tab-status" style="flex:1;overflow-y:auto;padding:0.8rem;" class="tab-content active">
+        <div class="panel-title">Station Status</div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:10px;margin-bottom:10px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.78rem;margin-bottom:6px;">⚡ LIFE SUPPORT</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.75rem;color:var(--text);">
+            <div>O₂ Level:</div><div style="color:#69f0ae">98.2%</div>
+            <div>CO₂ Scrub:</div><div style="color:#69f0ae">Online</div>
+            <div>Pressure:</div><div style="color:#69f0ae">Normal</div>
+            <div>Temperature:</div><div style="color:#ffcc02">18.4°C</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:10px;margin-bottom:10px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.78rem;margin-bottom:6px;">🔋 POWER SYSTEMS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.75rem;color:var(--text);">
+            <div>Reactor:</div><div style="color:#69f0ae">Stable</div>
+            <div>Battery:</div><div style="color:#69f0ae">87%</div>
+            <div>Sonar Array:</div><div style="color:#69f0ae" id="sonar-status">Offline</div>
+            <div>Med Bay:</div><div id="medbay-status" style="color:var(--text)">Offline</div>
+            <div>Rapid Med Bay:</div><div id="rapidmedbay-status" style="color:var(--text)">Offline</div>
+            <div>Emergency Kit:</div><div id="emergencykit-status" style="color:var(--text)">Offline</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:10px;margin-bottom:10px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.78rem;margin-bottom:6px;">🏥 MEDICAL BAY</div>
+          <div id="heal-status-interior" style="font-size:0.8rem;color:var(--text);margin-bottom:8px;"></div>
+          <button id="interior-heal-btn" class="upgrade-btn" onclick="interiorHeal()" style="width:100%;padding:6px;font-family:'Cinzel',serif;font-size:0.75rem;border:1px solid #4fc3f7;background:rgba(79,195,247,0.1);color:#4fc3f7;cursor:pointer;border-radius:3px;">✚ Restore HP</button>
+        </div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:10px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.78rem;margin-bottom:6px;">📡 SONAR REPORT</div>
+          <div id="sonar-report" style="font-size:0.75rem;color:var(--text);line-height:1.7;"></div>
+        </div>
+      </div>
+
+      <!-- Log tab -->
+      <div id="proteus-tab-log" style="flex:1;overflow-y:auto;padding:0.8rem;display:none;" class="tab-content">
+        <div class="panel-title">Station Log</div>
+        <div id="proteus-log-list" style="font-size:0.78rem;color:var(--text);display:flex;flex-direction:column;gap:4px;"></div>
+      </div>
+
+      <!-- Inv tab -->
+      <div id="proteus-tab-inv" style="flex:1;overflow-y:auto;padding:0.8rem;display:none;" class="tab-content">
+        <div class="panel-title">Inventory</div>
+        <div style="font-size:0.75rem;color:var(--seafoam);margin-bottom:6px">CONSUMABLES</div>
+        <div id="p-inv-consumables"></div>
+        <div style="font-size:0.75rem;color:var(--seafoam);margin:10px 0 6px">COLLECTED TREASURES</div>
+        <div id="p-inv-treasures"></div>
+      </div>
+
+      <!-- About tab -->
+      <div id="proteus-tab-about" style="flex:1;overflow-y:auto;padding:0.8rem;display:none;" class="tab-content">
+        <div class="panel-title">About Proteus</div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:12px;margin-bottom:10px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.8rem;margin-bottom:8px;">🏗️ REAL-WORLD PROTEUS</div>
+          <p style="font-size:0.78rem;color:var(--white);line-height:1.7;">
+            The <strong style="color:#4fc3f7">Proteus</strong> is being built in real life by Jacques Cousteau's grandson, <strong style="color:#ffd700">Fabien Cousteau</strong>.
+          </p>
+          <p style="font-size:0.78rem;color:var(--text);line-height:1.7;margin-top:6px;">
+            The project will cost around <strong style="color:#ffd700">$135 Million</strong> and will be located in the <strong style="color:#69f0ae">Caribbean Sea</strong>. It is designed to be the world's most advanced underwater habitat — a fully functional ocean-floor research station available to scientists from around the globe.
+          </p>
+          <p style="font-size:0.78rem;color:var(--text);line-height:1.7;margin-top:6px;">
+            Inspired by the original <em>Conshelf</em> stations pioneered by Jacques-Yves Cousteau himself in the 1960s, the new Proteus aims to take undersea living into the 21st century.
+          </p>
+        </div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:12px;margin-bottom:10px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.8rem;margin-bottom:8px;">🤿 THE AQUALUNG</div>
+          <p style="font-size:0.78rem;color:var(--white);line-height:1.7;">
+            The <strong style="color:#4fc3f7">Aqualung</strong> was co-invented by <strong style="color:#ffd700">Jacques Cousteau</strong> and engineer Émile Gagnan in <strong style="color:#ffd700">1943</strong>.
+          </p>
+          <p style="font-size:0.78rem;color:var(--text);line-height:1.7;margin-top:6px;">
+            It was the world's first open-circuit self-contained underwater breathing apparatus (SCUBA), allowing divers to breathe freely underwater without being tethered to the surface. This single invention transformed ocean exploration, scientific diving, and Jacques Cousteau's own legendary career.
+          </p>
+        </div>
+
+        <div style="background:rgba(10,42,74,0.5);border:1px solid #1565c0;border-radius:6px;padding:12px;">
+          <div style="font-family:'Cinzel',serif;color:#4fc3f7;font-size:0.8rem;margin-bottom:8px;">⚓ COUSTEAU'S LEGACY</div>
+          <p style="font-size:0.78rem;color:var(--text);line-height:1.7;">
+            Jacques-Yves Cousteau (1910–1997) was a French naval officer, explorer, filmmaker, and conservationist who spent decades exploring and documenting the world's oceans. He co-developed the Aqualung, invented underwater photography techniques, and produced dozens of films bringing the ocean to life for millions worldwide.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  GAME ENGINE
+// ============================================================
+
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+
+// ---- PLAYER STATE ----
+const player = {
+  x: 400, y: 300, size: 20,
+  hp: 100, maxHp: 100,
+  atk: 12, def: 5, spd: 3,
+  xp: 0, xpNext: 100, level: 1,
+  gold: 0, gems: 0,
+  inventory: { healthPotion: 2, oxygenTank: 1 },
+  collectedTreasures: [],
+  upgrades: {},
+  defending: false,
+  specialCooldown: 0,
+  targetX: null, targetY: null,
+  moving: false
+};
+
+// ---- WORLD ----
+const WORLD = { width: 2000, height: 1500 };
+const cam = { x: 0, y: 0 };
+let entities = [];
+let particles = [];
+let animations = [];
+let logEntries = [];
+let inCombat = false;
+let currentEnemy = null;
+let enemyTurn = false;
+let keys = {};
+let frameCount = 0;
+
+// ---- UPGRADES DATA ----
+const UPGRADES = [
+  // --- COMBAT ---
+  { id: 'harpoon', name: 'Tranq Harpoon', icon: '🔱', cat: 'Combat',
+    cost: { gold: 80 }, effect: '+8 ATK',
+    desc: 'Fire tranquilizer harpoons to subdue creatures faster.',
+    apply: () => { player.atk += 8; } },
+  { id: 'netLauncher', name: 'Net Launcher', icon: '🕸', cat: 'Combat',
+    cost: { gold: 110, gems: 1 }, effect: '+12 ATK, Net Strike cooldown -1 turn',
+    desc: 'Pneumatic launcher fires capture nets with greater force.',
+    apply: () => { player.atk += 12; player.netBonus = true; } },
+  { id: 'depth', name: 'Deep Dive Gear', icon: '🌊', cat: 'Combat',
+    cost: { gold: 150, gems: 3 }, effect: '+20 ATK, +10 DEF',
+    desc: 'Legendary pressure-rated gear for the deepest trenches.',
+    apply: () => { player.atk += 20; player.def += 10; } },
+  { id: 'stunGrenade', name: 'Stun Grenades', icon: '💥', cat: 'Combat',
+    cost: { gold: 95, gems: 2 }, effect: '+15% crit chance',
+    desc: 'Concussive charges disorient creatures, increasing critical stun chance.',
+    apply: () => { player.upgrades.critBoost = true; } },
+
+  // --- VESSEL ---
+  { id: 'boat1', name: 'Reinforced Hull', icon: '⛵', cat: 'Vessel',
+    cost: { gold: 50 }, effect: '+15 Max HP',
+    desc: 'Strengthen your boat hull for deeper, safer dives.',
+    apply: () => { player.maxHp += 15; player.hp = Math.min(player.hp + 15, player.maxHp); } },
+  { id: 'armor', name: 'Dive Suit Armor', icon: '🦺', cat: 'Vessel',
+    cost: { gold: 60, gems: 1 }, effect: '+6 DEF',
+    desc: 'Reinforced titanium-weave wetsuit for creature protection.',
+    apply: () => { player.def += 6; } },
+  { id: 'sub1', name: 'Submarine Engine', icon: '🚢', cat: 'Vessel',
+    cost: { gold: 120 }, effect: '+2 SPD',
+    desc: 'High-thrust propulsion for faster ocean traversal.',
+    apply: () => { player.spd += 2; } },
+  { id: 'extraTanks', name: 'Extended O₂ Tanks', icon: '🫧', cat: 'Vessel',
+    cost: { gold: 75 }, effect: '+25 Max HP',
+    desc: 'Larger oxygen reserves let you push deeper and survive longer.',
+    apply: () => { player.maxHp += 25; player.hp = Math.min(player.hp + 25, player.maxHp); } },
+  { id: 'thruster', name: 'Turbo Thrusters', icon: '⚡', cat: 'Vessel',
+    cost: { gold: 160, gems: 2 }, effect: '+3 SPD, +10 Max HP',
+    desc: 'Experimental ion thrusters ripped from a research drone.',
+    apply: () => { player.spd += 3; player.maxHp += 10; player.hp = Math.min(player.hp + 10, player.maxHp); } },
+
+  // --- STATION ---
+  { id: 'healing', name: 'Medical Bay', icon: '💊', cat: 'Station',
+    cost: { gold: 70 }, effect: 'Heal 30 HP after each capture',
+    desc: 'Basic medical equipment auto-heals you between captures.',
+    apply: () => { player.upgrades.medBay = true; } },
+  { id: 'rapidMedBay', name: 'Rapid Medical Bay', icon: '🏥', cat: 'Station',
+    cost: { gold: 130, gems: 3 }, effect: 'Proteus cooldown: 5 min to 3 min',
+    desc: 'Upgraded regenerative gel tanks cut Proteus heal cooldown to 3 minutes.',
+    requires: 'healing',
+    apply: () => { player.upgrades.rapidMedBay = true; PROTEUS.COOLDOWN_MS = 3 * 60 * 1000; } },
+  { id: 'emergencyKit', name: 'Emergency Kit', icon: '🆘', cat: 'Station',
+    cost: { gold: 85 }, effect: 'Spawn with 2 extra health potions',
+    desc: 'Proteus stores emergency kits — replenished each time you enter.',
+    apply: () => { player.upgrades.emergencyKit = true; } },
+  { id: 'sonar', name: 'Sonar System', icon: '📡', cat: 'Station',
+    cost: { gold: 90, gems: 2 }, effect: 'Enhanced sonar in Proteus',
+    desc: 'Advanced sonar array reveals creature and treasure positions.',
+    apply: () => { player.upgrades.sonar = true; } },
+
+  // --- EXPLORATION ---
+  { id: 'aqualung', name: 'Aqualung', icon: '🤿', cat: 'Exploration',
+    cost: { gold: 60 }, effect: '+10 Max HP, +1 SPD',
+    desc: "Co-invented by Jacques Cousteau in 1943, the Aqualung was the world's first open-circuit self-contained underwater breathing apparatus - revolutionising diving forever.",
+    lore: true,
+    apply: () => { player.maxHp += 10; player.hp = Math.min(player.hp + 10, player.maxHp); player.spd += 1; } },
+  { id: 'periscope', name: 'Gold Periscope', icon: '🔭', cat: 'Exploration',
+    cost: { gems: 5 }, effect: '+50% gold from all sources',
+    desc: 'Spot treasure glints from miles away with this gilded scope.',
+    apply: () => { player.upgrades.goldBoost = true; } },
+  { id: 'pressureSuit', name: 'Pressure Suit Mk II', icon: '🧑‍🚀', cat: 'Exploration',
+    cost: { gold: 140, gems: 2 }, effect: '+15 DEF, +10 Max HP',
+    desc: 'Next-generation suit rated for the Mariana Trench itself.',
+    apply: () => { player.def += 15; player.maxHp += 10; player.hp = Math.min(player.hp + 10, player.maxHp); } },
+  { id: 'treasureMap', name: 'Treasure Cartography', icon: '🗺️', cat: 'Exploration',
+    cost: { gold: 100, gems: 1 }, effect: '+75% gem chance on treasure',
+    desc: 'Ancient nautical charts guide you to the richest hoards.',
+    apply: () => { player.upgrades.gemBoost = true; } },
+];
+
+// ---- ENEMY TYPES ----
+const ENEMY_TYPES = [
+  { name: 'Shark', emoji: '🦈', hp: 60, atk: 10, def: 3, xp: 30, gold: 15, color: '#607d8b', level: 1 },
+  { name: 'Octopus', emoji: '🐙', hp: 80, atk: 14, def: 5, xp: 45, gold: 20, color: '#9c27b0', level: 2 },
+  { name: 'Pufferfish', emoji: '🐡', hp: 45, atk: 18, def: 1, xp: 35, gold: 12, color: '#ff9800', level: 1 },
+  { name: 'Giant Crab', emoji: '🦀', hp: 100, atk: 12, def: 10, xp: 60, gold: 30, color: '#f44336', level: 3 },
+  { name: 'Piranha School', emoji: '🐠', hp: 55, atk: 16, def: 2, xp: 40, gold: 18, color: '#e91e63', level: 2 },
+  { name: 'Giant Squid', emoji: '🦑', hp: 130, atk: 20, def: 8, xp: 90, gold: 50, color: '#3f51b5', level: 4 },
+  { name: 'Electric Eel', emoji: '⚡', hp: 70, atk: 22, def: 4, xp: 75, gold: 35, color: '#ffeb3b', level: 3 },
+  { name: 'Whale', emoji: '🐋', hp: 200, atk: 25, def: 12, xp: 150, gold: 80, color: '#1565c0', level: 5 },
+];
+
+// ---- BOSS TYPES (rare spawns) ----
+const BOSS_TYPES = [
+  { name: 'Leviathan Serpent', emoji: '🐉', hp: 500, atk: 40, def: 18, xp: 500, gold: 300, gems: 4, color: '#00c853', level: 3, boss: true,
+    taunt: 'The ocean trembles as the Leviathan Serpent rises from the abyss!' },
+  { name: 'Kraken King', emoji: '👾', hp: 650, atk: 50, def: 22, xp: 700, gold: 450, gems: 6, color: '#aa00ff', level: 4, boss: true,
+    taunt: 'Many tentacles reach from the dark — the Kraken King has awakened!' },
+  { name: 'Colossus Crab', emoji: '🦞', hp: 800, atk: 35, def: 35, xp: 600, gold: 380, gems: 5, color: '#dd2c00', level: 4, boss: true,
+    taunt: 'The sea floor shakes — a Colossus Crab the size of a ship emerges!' },
+  { name: 'Abyssal Anglerfish', emoji: '🎣', hp: 450, atk: 60, def: 12, xp: 550, gold: 320, gems: 5, color: '#0091ea', level: 3, boss: true,
+    taunt: 'A blinding light lures you in — the Abyssal Anglerfish strikes!' },
+  { name: 'Ghost Whale', emoji: '🌊', hp: 900, atk: 45, def: 25, xp: 900, gold: 600, gems: 8, color: '#e0f7fa', level: 5, boss: true,
+    taunt: 'A spectral colossus materialises from the deep — the Ghost Whale!' },
+];
+
+// ---- TREASURE TYPES ----
+const TREASURE_TYPES = [
+  { name: 'Sunken Chest', emoji: '🪙', gold: [20,40], gems: 0, hpItem: 0, icon: '📦' },
+  { name: 'Ancient Relic', emoji: '🏺', gold: [30,60], gems: 1, hpItem: 0, icon: '🏺' },
+  { name: 'Pearl Cluster', emoji: '🔮', gold: [10,20], gems: 2, hpItem: 0, icon: '💎' },
+  { name: 'Pirate Gold', emoji: '💰', gold: [50,100], gems: 0, hpItem: 0, icon: '💰' },
+  { name: 'Health Potion', emoji: '🧪', gold: [5,15], gems: 0, hpItem: 1, icon: '🧪' },
+  { name: 'Oxygen Tank', emoji: '🫧', gold: [8,12], gems: 0, hpItem: 0, oxyItem: 1, icon: '🫧' },
+];
+
+// ---- OCEAN FEATURES ----
+const CORAL_COLORS = ['#ff7043','#ef5350','#ec407a','#ab47bc','#ff8a65','#ffb74d'];
+const seaFloor = [];
+const corals = [];
+const rocks = [];
+const seaweed = [];
+
+// ---- PROTEUS STATION ----
+const PROTEUS = {
+  x: Math.floor(WORLD.width * 0.62),
+  y: Math.floor(WORLD.height * 0.71),
+  radius: 70,
+  healCooldown: 0,
+  exitCooldown: 0,       // timestamp of last exit - prevents instant re-entry
+  COOLDOWN_MS: 5 * 60 * 1000,
+  playerInside: false,
+};
+
+// ---- NAVAL PORTAL ----
+const NAVAL_PORTAL = {
+  x: WORLD.width * 0.5,
+  y: 80,                  // top strip of ocean
+  radius: 55,
+  CYCLE_MS: 3 * 60 * 1000,   // portal opens every 3 minutes
+  OPEN_MS: 60 * 1000,         // stays open for 1 minute
+  openedAt: 0,                 // timestamp when this cycle opened (0 = not yet)
+  nextOpenAt: Date.now() + 30 * 1000, // first open after 30s so player can find it
+  active: false,
+  exitCooldown: 0,
+};
+
+function initWorld() {
+  // Sea floor decoration
+  for (let i = 0; i < 80; i++) {
+    seaFloor.push({
+      x: Math.random() * WORLD.width,
+      y: Math.random() * WORLD.height,
+      type: Math.random() < 0.4 ? 'coral' : Math.random() < 0.6 ? 'rock' : 'weed',
+      color: CORAL_COLORS[Math.floor(Math.random() * CORAL_COLORS.length)],
+      size: 15 + Math.random() * 30,
+      sway: Math.random() * Math.PI * 2,
+      swaySpeed: 0.01 + Math.random() * 0.02,
+      h: 20 + Math.random() * 50,
+    });
+  }
+  spawnEntities();
+}
+
+function spawnEntities() {
+  entities = [];
+  // Regular creatures
+  const count = 18 + player.level * 2;
+  for (let i = 0; i < count; i++) {
+    let type = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)];
+    let zone = Math.random();
+    if (zone < 0.4) type = ENEMY_TYPES[Math.floor(Math.random() * 3)];
+    else if (zone < 0.7) type = ENEMY_TYPES[2 + Math.floor(Math.random() * 3)];
+    else type = ENEMY_TYPES[4 + Math.floor(Math.random() * 4)];
+
+    entities.push({
+      type: 'enemy',
+      x: 150 + Math.random() * (WORLD.width - 300),
+      y: 150 + Math.random() * (WORLD.height - 300),
+      ...JSON.parse(JSON.stringify(type)),
+      maxHp: type.hp,
+      id: Math.random(),
+      bobOffset: Math.random() * Math.PI * 2,
+      patrol: { x: 0, y: 0, timer: 0, dirX: (Math.random()-0.5)*2, dirY: (Math.random()-0.5)*2 }
+    });
+  }
+  // Boss spawns: each has a 15% chance to appear, max 2 at world start
+  let bossCount = 0;
+  for (let i = 0; i < BOSS_TYPES.length; i++) {
+    if (bossCount >= 2) break;
+    if (Math.random() < 0.15) {
+      spawnOneBoss(BOSS_TYPES[i]);
+      bossCount++;
+    }
+  }
+  // Treasures
+  for (let i = 0; i < 14; i++) {
+    let t = TREASURE_TYPES[Math.floor(Math.random() * TREASURE_TYPES.length)];
+    entities.push({
+      type: 'treasure',
+      x: 100 + Math.random() * (WORLD.width - 200),
+      y: 100 + Math.random() * (WORLD.height - 200),
+      ...JSON.parse(JSON.stringify(t)),
+      id: Math.random(),
+      bobOffset: Math.random() * Math.PI * 2,
+      gold: t.gold[0] + Math.floor(Math.random() * (t.gold[1] - t.gold[0])),
+    });
+  }
+}
+
+// ============================================================
+//  RENDERING
+// ============================================================
+
+function resizeCanvas() {
+  const area = document.getElementById('game-area');
+  const panel = document.getElementById('side-panel');
+  canvas.width = area.clientWidth - panel.offsetWidth;
+  canvas.height = area.clientHeight;
+}
+
+function updateCamera() {
+  cam.x = player.x - canvas.width / 2;
+  cam.y = player.y - canvas.height / 2;
+  cam.x = Math.max(0, Math.min(cam.x, WORLD.width - canvas.width));
+  cam.y = Math.max(0, Math.min(cam.y, WORLD.height - canvas.height));
+}
+
+function drawBackground() {
+  // Deep ocean gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, '#0a1628');
+  grad.addColorStop(0.5, '#071020');
+  grad.addColorStop(1, '#040c18');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Light rays from surface
+  ctx.save();
+  for (let i = 0; i < 6; i++) {
+    const rx = (i / 6) * canvas.width + Math.sin(frameCount * 0.005 + i) * 30;
+    const grad2 = ctx.createLinearGradient(rx, 0, rx + 80, canvas.height);
+    grad2.addColorStop(0, 'rgba(0,188,212,0.04)');
+    grad2.addColorStop(1, 'rgba(0,188,212,0)');
+    ctx.fillStyle = grad2;
+    ctx.beginPath();
+    ctx.moveTo(rx, 0);
+    ctx.lineTo(rx + 60, canvas.height);
+    ctx.lineTo(rx + 80, canvas.height);
+    ctx.lineTo(rx + 20, 0);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Grid / ocean floor tiles
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,188,212,0.04)';
+  ctx.lineWidth = 1;
+  const gridSize = 80;
+  const startX = -(cam.x % gridSize);
+  const startY = -(cam.y % gridSize);
+  for (let x = startX; x < canvas.width; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = startY; y < canvas.height; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSeaFeatures() {
+  seaFloor.forEach(f => {
+    const sx = f.x - cam.x;
+    const sy = f.y - cam.y;
+    if (sx < -100 || sx > canvas.width + 100 || sy < -100 || sy > canvas.height + 100) return;
+    const sway = Math.sin(frameCount * f.swaySpeed + f.sway) * 4;
+    ctx.save();
+    ctx.translate(sx, sy);
+    if (f.type === 'weed') {
+      ctx.strokeStyle = '#1b5e20';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(sway * 2, -f.h / 2, sway, -f.h);
+      ctx.stroke();
+      ctx.strokeStyle = '#2e7d32';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(4, 0);
+      ctx.quadraticCurveTo(sway * 1.5 + 5, -f.h / 2, sway + 3, -f.h * 0.9);
+      ctx.stroke();
+    } else if (f.type === 'coral') {
+      ctx.fillStyle = f.color;
+      ctx.shadowColor = f.color;
+      ctx.shadowBlur = 8;
+      // Draw coral branches
+      for (let b = 0; b < 3; b++) {
+        const bx = (b - 1) * 10 + sway;
+        ctx.beginPath();
+        ctx.moveTo(bx, 0);
+        ctx.lineTo(bx, -f.h * (0.6 + b * 0.2));
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = f.color;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(bx, -f.h * (0.6 + b * 0.2), 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
+      ctx.fillStyle = '#37474f';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, f.size * 0.8, f.size * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#546e7a';
+      ctx.beginPath();
+      ctx.ellipse(-f.size * 0.2, -f.size * 0.1, f.size * 0.5, f.size * 0.25, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+}
+
+function drawEntities() {
+  entities.forEach(e => {
+    const sx = e.x - cam.x;
+    const sy = e.y - cam.y;
+    if (sx < -80 || sx > canvas.width + 80 || sy < -80 || sy > canvas.height + 80) return;
+    const bob = Math.sin(frameCount * 0.04 + e.bobOffset) * 5;
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (e.type === 'enemy') {
+      if (e.boss) {
+        // Boss: pulsing danger ring
+        const pulse = 0.7 + Math.sin(frameCount * 0.08 + e.bobOffset) * 0.3;
+        ctx.beginPath();
+        ctx.arc(sx, sy + bob, 32 * pulse, 0, Math.PI * 2);
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 0.35 * pulse;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        // Second ring
+        ctx.beginPath();
+        ctx.arc(sx, sy + bob, 22, 0, Math.PI * 2);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.12;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        // Glow
+        ctx.shadowColor = e.color;
+        ctx.shadowBlur = 30 + Math.sin(frameCount * 0.1) * 10;
+        ctx.font = '44px serif';
+        ctx.fillText(e.emoji, sx, sy + bob);
+        ctx.shadowBlur = 0;
+        // BOSS label
+        ctx.font = 'bold 9px Cinzel, serif';
+        ctx.fillStyle = e.color;
+        ctx.shadowColor = e.color;
+        ctx.shadowBlur = 6;
+        ctx.fillText('⚠ BOSS', sx, sy + bob - 34);
+        ctx.shadowBlur = 0;
+        // Name
+        ctx.font = '11px Crimson Text';
+        ctx.fillStyle = '#fff';
+        ctx.fillText(e.name, sx, sy + bob - 24);
+        // Wide HP bar
+        const bw = 60, bh = 6;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(sx - bw / 2, sy + bob + 28, bw, bh);
+        const hpPct = e.hp / e.maxHp;
+        ctx.fillStyle = hpPct > 0.5 ? e.color : hpPct > 0.25 ? '#ff9800' : '#ef5350';
+        ctx.fillRect(sx - bw / 2, sy + bob + 28, bw * hpPct, bh);
+      } else {
+        // Normal creature
+        ctx.shadowColor = e.color;
+        ctx.shadowBlur = 15;
+        ctx.font = '28px serif';
+        ctx.fillText(e.emoji, sx, sy + bob);
+        ctx.shadowBlur = 0;
+        ctx.font = '10px Crimson Text';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(e.name, sx, sy + bob - 22);
+        const bw = 36, bh = 4;
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(sx - bw / 2, sy + bob + 18, bw, bh);
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(sx - bw / 2, sy + bob + 18, bw * (e.hp / e.maxHp), bh);
+      }
+    } else if (e.type === 'treasure') {
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 20 + Math.sin(frameCount * 0.08 + e.bobOffset) * 8;
+      ctx.font = '28px serif';
+      ctx.fillText('📦', sx, sy + bob);
+      ctx.shadowBlur = 0;
+      if (Math.random() < 0.15) {
+        particles.push({ x: sx + cam.x + (Math.random()-0.5)*20, y: sy + cam.y + (Math.random()-0.5)*20, life: 30, color: '#ffd700', size: 2, vx: (Math.random()-0.5)*0.5, vy: -0.5 });
+      }
+    }
+    ctx.restore();
+  });
+}
+
+function drawDiverOnCtx(c) {
+  // Wetsuit body
+  c.fillStyle = '#1a237e';
+  c.beginPath(); c.ellipse(0, 8, 9, 13, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#283593';
+  c.beginPath(); c.ellipse(-2, 5, 4, 8, -0.2, 0, Math.PI * 2); c.fill();
+  // Tank
+  c.fillStyle = '#90a4ae';
+  c.beginPath(); c.ellipse(9, 6, 4, 7, 0.3, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#b0bec5';
+  c.beginPath(); c.ellipse(9, 6, 2.5, 5, 0.3, 0, Math.PI * 2); c.fill();
+  // Head
+  c.fillStyle = '#ffcc80';
+  c.beginPath(); c.arc(0, -8, 8, 0, Math.PI * 2); c.fill();
+  // Red beanie
+  c.fillStyle = '#e53935';
+  c.beginPath(); c.ellipse(0, -12, 8.5, 5, 0, 0, Math.PI * 2); c.fill();
+  c.fillRect(-8.5, -16, 17, 6);
+  c.beginPath(); c.arc(0, -16, 4, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#ffcdd2';
+  c.beginPath(); c.arc(0, -20, 3, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#b71c1c'; c.lineWidth = 1.5;
+  c.beginPath(); c.ellipse(0, -12, 8.5, 4, 0, 0, Math.PI); c.stroke();
+  // Mask frame
+  c.fillStyle = '#263238';
+  c.beginPath(); c.ellipse(0, -8, 7.5, 5.5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(77,208,225,0.55)';
+  c.beginPath(); c.ellipse(0, -8, 6, 4.5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(255,255,255,0.35)';
+  c.beginPath(); c.ellipse(-2, -10, 2.5, 1.5, -0.5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#1a237e';
+  c.beginPath(); c.arc(-2.5, -8, 1.5, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(2.5, -8, 1.5, 0, Math.PI * 2); c.fill();
+  // Regulator
+  c.fillStyle = '#546e7a';
+  c.beginPath(); c.arc(5, -3, 2.5, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#78909c'; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(5,-3); c.quadraticCurveTo(8,0,9,2); c.stroke();
+  // Arms
+  c.fillStyle = '#1565c0';
+  c.beginPath(); c.ellipse(-11, 6, 3.5, 7, -0.4, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(11, 6, 3.5, 7, 0.4, 0, Math.PI * 2); c.fill();
+  // Flippers
+  c.fillStyle = '#00897b';
+  c.beginPath(); c.ellipse(-5, 21, 4, 8, -0.2, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(5, 21, 4, 8, 0.2, 0, Math.PI * 2); c.fill();
+}
+
+function drawCombatDiver() {
+  const cc = document.getElementById('combat-diver-canvas');
+  if (!cc) return;
+  const cx2 = cc.getContext('2d');
+  cx2.clearRect(0,0,56,68);
+  cx2.save(); cx2.translate(28,40); cx2.scale(1,1);
+  drawDiverOnCtx(cx2);
+  cx2.restore();
+}
+
+function drawDiver(sx, sy, scale = 1) {
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.scale(scale, scale);
+  ctx.shadowColor = '#4dd0e1';
+  ctx.shadowBlur = 18;
+  drawDiverOnCtx(ctx);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawProteus() {
+  const sx = PROTEUS.x - cam.x;
+  const sy = PROTEUS.y - cam.y;
+  if (sx < -200 || sx > canvas.width + 200 || sy < -200 || sy > canvas.height + 200) return;
+
+  const t = frameCount * 0.02;
+  const inside = PROTEUS.playerInside;
+  const now = Date.now();
+  const coolingDown = PROTEUS.healCooldown && (now - PROTEUS.healCooldown) < PROTEUS.COOLDOWN_MS;
+
+  ctx.save();
+
+  // Proximity zone (soft ring)
+  ctx.beginPath();
+  ctx.arc(sx, sy, PROTEUS.radius, 0, Math.PI * 2);
+  ctx.strokeStyle = inside ? 'rgba(0,230,118,0.5)' : 'rgba(0,188,212,0.2)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Ocean floor shadow / base pad
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 44, 62, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Support legs (3 struts)
+  ctx.strokeStyle = '#455a64';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  [[-40, 38], [0, 46], [40, 38]].forEach(([lx, ly]) => {
+    ctx.beginPath();
+    ctx.moveTo(sx + lx * 0.6, sy + 28);
+    ctx.lineTo(sx + lx, sy + ly);
+    ctx.stroke();
+  });
+  // Leg feet
+  ctx.strokeStyle = '#607d8b';
+  ctx.lineWidth = 8;
+  [[-40, 38], [0, 46], [40, 38]].forEach(([lx, ly]) => {
+    ctx.beginPath();
+    ctx.moveTo(sx + lx - 10, sy + ly);
+    ctx.lineTo(sx + lx + 10, sy + ly);
+    ctx.stroke();
+  });
+
+  // Main hull (large cylinder body)
+  const hullGrad = ctx.createLinearGradient(sx - 55, sy, sx + 55, sy);
+  hullGrad.addColorStop(0, '#1a3a5c');
+  hullGrad.addColorStop(0.35, '#2e6da4');
+  hullGrad.addColorStop(0.65, '#1e5280');
+  hullGrad.addColorStop(1, '#0d2137');
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.ellipse(sx, sy, 55, 28, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#4fc3f7';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Hull highlight band
+  ctx.fillStyle = 'rgba(79,195,247,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(sx - 5, sy - 8, 38, 12, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Dome / observation bubble on top
+  const domeGrad = ctx.createRadialGradient(sx - 8, sy - 30, 2, sx, sy - 24, 22);
+  domeGrad.addColorStop(0, 'rgba(144,202,249,0.7)');
+  domeGrad.addColorStop(0.6, 'rgba(30,100,160,0.55)');
+  domeGrad.addColorStop(1, 'rgba(10,40,80,0.8)');
+  ctx.fillStyle = domeGrad;
+  ctx.beginPath();
+  ctx.arc(sx, sy - 22, 22, Math.PI, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#4fc3f7';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(sx, sy - 22, 22, Math.PI, 0);
+  ctx.closePath();
+  ctx.stroke();
+  // Dome shine
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(sx - 7, sy - 32, 8, 5, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Porthole windows on hull
+  [[-30, 2], [0, 2], [30, 2]].forEach(([wx, wy], i) => {
+    const lit = inside || (Math.sin(t * 2 + i) > 0.3);
+    ctx.beginPath();
+    ctx.arc(sx + wx, sy + wy, 7, 0, Math.PI * 2);
+    ctx.fillStyle = lit ? 'rgba(255,235,150,0.75)' : 'rgba(30,60,90,0.8)';
+    ctx.fill();
+    ctx.strokeStyle = '#4fc3f7';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // window shine
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.arc(sx + wx - 2, sy + wy - 2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Antenna / mast on top
+  ctx.strokeStyle = '#90caf9';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sx + 18, sy - 43);
+  ctx.lineTo(sx + 18, sy - 62);
+  ctx.stroke();
+  // Blinking light on antenna
+  const blink = Math.sin(frameCount * 0.12) > 0;
+  ctx.beginPath();
+  ctx.arc(sx + 18, sy - 63, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = blink ? '#ff5252' : '#b71c1c';
+  ctx.shadowColor = '#ff5252';
+  ctx.shadowBlur = blink ? 8 : 2;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Airlock tube on right side
+  ctx.strokeStyle = '#37474f';
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(sx + 54, sy + 4);
+  ctx.lineTo(sx + 70, sy + 18);
+  ctx.stroke();
+  ctx.strokeStyle = '#546e7a';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(sx + 54, sy + 4);
+  ctx.lineTo(sx + 70, sy + 18);
+  ctx.stroke();
+
+  // Name plate
+  ctx.font = 'bold 11px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#e0f7fa';
+  ctx.shadowColor = '#4fc3f7';
+  ctx.shadowBlur = 6;
+  ctx.fillText('PROTEUS', sx, sy + 6);
+  ctx.shadowBlur = 0;
+
+  // Status label above station
+  ctx.font = '10px Crimson Text';
+  if (inside) {
+    if (coolingDown) {
+      const remaining = Math.ceil((PROTEUS.COOLDOWN_MS - (now - PROTEUS.healCooldown)) / 1000);
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      ctx.fillStyle = '#ffb74d';
+      ctx.fillText(`⏳ Recharge: ${mins}:${secs.toString().padStart(2,'0')}`, sx, sy - 56);
+    } else {
+      ctx.fillStyle = '#69f0ae';
+      ctx.shadowColor = '#00e676';
+      ctx.shadowBlur = 8;
+      ctx.fillText('✚ HP RESTORED', sx, sy - 56);
+      ctx.shadowBlur = 0;
+    }
+  } else {
+    ctx.fillStyle = coolingDown ? '#ffb74d' : '#4fc3f7';
+    ctx.fillText(coolingDown ? '⏳ Station recharging…' : '🏠 Enter to explore', sx, sy - 56);
+  }
+
+  ctx.restore();
+}
+
+function checkProteus() {
+  // Don't re-enter within 1.5s of exiting
+  if (PROTEUS.exitCooldown && Date.now() - PROTEUS.exitCooldown < 1500) return;
+  const dx = player.x - PROTEUS.x;
+  const dy = player.y - PROTEUS.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const wasInside = PROTEUS.playerInside;
+  const nowInside = dist < PROTEUS.radius;
+  if (nowInside && !wasInside) {
+    enterProteus();
+  }
+}
+
+function drawPlayer() {
+  const sx = player.x - cam.x;
+  const sy = player.y - cam.y;
+  const bob = Math.sin(frameCount * 0.05) * 3;
+
+  ctx.save();
+  drawDiver(sx, sy + bob);
+  ctx.shadowBlur = 0;
+
+  // Move target indicator
+  if (player.moving && player.targetX !== null) {
+    const tx = player.targetX - cam.x;
+    const ty = player.targetY - cam.y;
+    ctx.strokeStyle = 'rgba(0,188,212,0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(tx, ty, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,188,212,0.6)';
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawParticles() {
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    const sx = p.x - cam.x;
+    const sy = p.y - cam.y;
+    ctx.save();
+    ctx.globalAlpha = p.life / 30;
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(sx, sy, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+  });
+}
+
+function drawMinimap() {
+  const mw = 120, mh = 80;
+  const mx = canvas.width - mw - 10;
+  const my = 10;
+  ctx.save();
+  ctx.fillStyle = 'rgba(2,12,27,0.8)';
+  ctx.strokeStyle = 'rgba(0,188,212,0.5)';
+  ctx.lineWidth = 1;
+  ctx.fillRect(mx, my, mw, mh);
+  ctx.strokeRect(mx, my, mw, mh);
+  // Entities on minimap
+  entities.forEach(e => {
+    const ex = mx + (e.x / WORLD.width) * mw;
+    const ey = my + (e.y / WORLD.height) * mh;
+    if (e.type === 'enemy' && e.boss) {
+      ctx.fillStyle = e.color;
+      ctx.beginPath();
+      ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = e.type === 'enemy' ? '#ef5350' : '#ffd700';
+      ctx.fillRect(ex - 1.5, ey - 1.5, 3, 3);
+    }
+  });
+  // Proteus station on minimap
+  const prx = mx + (PROTEUS.x / WORLD.width) * mw;
+  const pry = my + (PROTEUS.y / WORLD.height) * mh;
+  ctx.fillStyle = '#4fc3f7';
+  ctx.strokeStyle = '#e0f7fa';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(prx, pry, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.font = '6px sans-serif';
+  ctx.fillStyle = '#e0f7fa';
+  ctx.textAlign = 'center';
+  ctx.fillText('P', prx, pry + 2);
+  // Player
+  const px = mx + (player.x / WORLD.width) * mw;
+  const py = my + (player.y / WORLD.height) * mh;
+  ctx.fillStyle = '#4dd0e1';
+  ctx.beginPath();
+  ctx.arc(px, py, 3, 0, Math.PI * 2);
+  ctx.fill();
+  // Viewport rect
+  ctx.strokeStyle = 'rgba(77,208,225,0.4)';
+  ctx.strokeRect(mx + (cam.x / WORLD.width) * mw, my + (cam.y / WORLD.height) * mh,
+    (canvas.width / WORLD.width) * mw, (canvas.height / WORLD.height) * mh);
+  ctx.restore();
+}
+
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBackground();
+  drawSeaFeatures();
+  drawNavalPortal();
+  drawProteus();
+  drawEntities();
+  drawPlayer();
+  drawParticles();
+  drawMinimap();
+}
+
+// ============================================================
+//  GAME LOOP
+// ============================================================
+
+function gameLoop() {
+  if (inCombat || !document.getElementById('game-screen').classList.contains('active')) {
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+  frameCount++;
+  handleMovement();
+  updateCamera();
+  checkPickups();
+  checkProteus();
+  checkNavalPortal();
+  patrolEnemies();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+function handleMovement() {
+  let moved = false;
+  if (keys['ArrowUp'] || keys['w'] || keys['W']) { player.y -= player.spd; moved = true; player.moving = false; }
+  if (keys['ArrowDown'] || keys['s'] || keys['S']) { player.y += player.spd; moved = true; player.moving = false; }
+  if (keys['ArrowLeft'] || keys['a'] || keys['A']) { player.x -= player.spd; moved = true; player.moving = false; }
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) { player.x += player.spd; moved = true; player.moving = false; }
+  if (moved) {
+    player.x = Math.max(20, Math.min(player.x, WORLD.width - 20));
+    player.y = Math.max(20, Math.min(player.y, WORLD.height - 20));
+    return;
+  }
+  if (player.moving && player.targetX !== null) {
+    const dx = player.targetX - player.x;
+    const dy = player.targetY - player.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < player.spd + 2) {
+      player.x = player.targetX;
+      player.y = player.targetY;
+      player.moving = false;
+    } else {
+      player.x += (dx / dist) * player.spd;
+      player.y += (dy / dist) * player.spd;
+    }
+  }
+}
+
+function patrolEnemies() {
+  entities.forEach(e => {
+    if (e.type !== 'enemy') return;
+    e.patrol.timer++;
+    if (e.patrol.timer > 90) {
+      e.patrol.dirX = (Math.random() - 0.5) * 2;
+      e.patrol.dirY = (Math.random() - 0.5) * 2;
+      e.patrol.timer = 0;
+    }
+    e.x = Math.max(50, Math.min(e.x + e.patrol.dirX * 0.5, WORLD.width - 50));
+    e.y = Math.max(50, Math.min(e.y + e.patrol.dirY * 0.5, WORLD.height - 50));
+  });
+}
+
+function checkPickups() {
+  // Auto-pickup won't happen; handled on click
+}
+
+// ============================================================
+//  INPUT
+// ============================================================
+
+canvas.addEventListener('click', (e) => {
+  if (inCombat) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left + cam.x;
+  const cy = e.clientY - rect.top + cam.y;
+
+  // Check entity clicks
+  for (let i = 0; i < entities.length; i++) {
+    const ent = entities[i];
+    const dx = cx - ent.x, dy = cy - ent.y;
+    if (Math.sqrt(dx * dx + dy * dy) < 30) {
+      if (ent.type === 'enemy') {
+        startCombat(ent, i);
+        return;
+      } else if (ent.type === 'treasure') {
+        collectTreasure(ent, i);
+        return;
+      }
+    }
+  }
+
+  // Move
+  player.targetX = cx;
+  player.targetY = cy;
+  player.moving = true;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const tooltip = document.getElementById('tooltip');
+  if (inCombat) { tooltip.style.display = 'none'; return; }
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left + cam.x;
+  const cy = e.clientY - rect.top + cam.y;
+  // Check Proteus station hover
+  const pdx = cx - PROTEUS.x, pdy = cy - PROTEUS.y;
+  if (Math.sqrt(pdx*pdx + pdy*pdy) < PROTEUS.radius + 20) {
+    const now = Date.now();
+    const coolingDown = PROTEUS.healCooldown && (now - PROTEUS.healCooldown) < PROTEUS.COOLDOWN_MS;
+    let status;
+    if (coolingDown) {
+      const remaining = Math.ceil((PROTEUS.COOLDOWN_MS - (now - PROTEUS.healCooldown)) / 1000);
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      status = `⏳ Recharging: ${mins}m ${secs}s`;
+    } else {
+      status = `<span style="color:#00e676">✚ Ready to heal</span>`;
+    }
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY - 12) + 'px';
+    tooltip.innerHTML = `<strong>🏠 Proteus Station</strong><br>Enter to restore full HP.<br>${status}<br><em style="color:var(--teal)">5 min cooldown</em>`;
+    return;
+  }
+  let found = false;
+  for (const ent of entities) {
+    const dx = cx - ent.x, dy = cy - ent.y;
+    if (Math.sqrt(dx * dx + dy * dy) < 30) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top = (e.clientY - 12) + 'px';
+      if (ent.type === 'enemy') {
+        const bossTag = ent.boss ? `<br><span style="color:${ent.color}">☠ BOSS CREATURE</span>` : '';
+        const gemStr = ent.gems ? ` · 💎${ent.gems}` : '';
+        tooltip.innerHTML = `<strong>${ent.emoji} ${ent.name}</strong>${bossTag}<br>HP: ${ent.hp}/${ent.maxHp}<br>ATK: ${ent.atk} · DEF: ${ent.def}<br>XP: ${ent.xp} · Gold: ${ent.gold}${gemStr}<br><em style="color:var(--teal)">Click to capture!</em>`;
+      } else {
+        tooltip.innerHTML = `<strong>📦 ${ent.name}</strong><br>Click to collect!`;
+      }
+      found = true;
+      break;
+    }
+  }
+  if (!found) tooltip.style.display = 'none';
+});
+
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  // Naval keyboard controls
+  if (document.getElementById('naval-screen').classList.contains('active')) {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') navalMove(-1);
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') navalMove(1);
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); navalFire(); }
+  }
+});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// ============================================================
+//  TREASURE
+// ============================================================
+
+function collectTreasure(treasure, idx) {
+  let goldGain = treasure.gold;
+  if (player.upgrades.goldBoost) goldGain = Math.floor(goldGain * 1.5);
+  player.gold += goldGain;
+  if (treasure.gems) {
+    const gemGain = player.upgrades.gemBoost ? treasure.gems + 1 : treasure.gems;
+    player.gems += gemGain;
+  }
+  if (treasure.hpItem) player.inventory.healthPotion = (player.inventory.healthPotion || 0) + 1;
+  if (treasure.oxyItem) player.inventory.oxygenTank = (player.inventory.oxygenTank || 0) + 1;
+
+  // Track in collectedTreasures log
+  player.collectedTreasures.push({
+    name: treasure.name,
+    icon: treasure.icon || '📦',
+    gold: goldGain,
+    gems: treasure.gems || 0,
+    hpItem: treasure.hpItem || 0,
+    oxyItem: treasure.oxyItem || 0,
+    time: Date.now(),
+  });
+
+  let msg = `📦 Found ${treasure.name}! +${goldGain} gold`;
+  if (treasure.gems) msg += ` +${treasure.gems} gems`;
+  if (treasure.hpItem) msg += ` +1 health potion`;
+  addLog(msg, 'treasure');
+  spawnNotif(`+${goldGain}💰`, treasure.x - cam.x, treasure.y - cam.y);
+
+  // Sparkle burst
+  for (let i = 0; i < 12; i++) {
+    particles.push({
+      x: treasure.x, y: treasure.y,
+      life: 40, color: '#ffd700',
+      size: 2 + Math.random() * 3,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3
+    });
+  }
+
+  entities.splice(idx, 1);
+  updateHUD();
+  updateInventoryPanel();
+
+  // Respawn a new treasure after delay
+  setTimeout(spawnOneTreasure, 8000);
+}
+
+function spawnOneTreasure() {
+  let t = TREASURE_TYPES[Math.floor(Math.random() * TREASURE_TYPES.length)];
+  entities.push({
+    type: 'treasure',
+    x: 100 + Math.random() * (WORLD.width - 200),
+    y: 100 + Math.random() * (WORLD.height - 200),
+    ...JSON.parse(JSON.stringify(t)),
+    id: Math.random(),
+    bobOffset: Math.random() * Math.PI * 2,
+    gold: t.gold[0] + Math.floor(Math.random() * (t.gold[1] - t.gold[0])),
+  });
+}
+
+// ============================================================
+//  COMBAT SYSTEM
+// ============================================================
+
+let combatEnemy = null;
+let combatIdx = -1;
+let playerDefending = false;
+let specialReady = 3;
+let combatTurnCount = 0;
+
+function startCombat(enemy, idx) {
+  inCombat = true;
+  document.getElementById('tooltip').style.display = 'none';
+  combatEnemy = JSON.parse(JSON.stringify(enemy));
+  combatIdx = idx;
+  playerDefending = false;
+  specialReady = 0;
+  combatTurnCount = 0;
+  player.moving = false;
+
+  document.getElementById('combat-modal').classList.add('active');
+  const isBoss = !!enemy.boss;
+  const combatBox = document.querySelector('.combat-box');
+  if (isBoss) {
+    combatBox.style.borderColor = enemy.color;
+    combatBox.style.boxShadow = `0 0 80px ${enemy.color}55`;
+    document.getElementById('combat-title').style.color = enemy.color;
+    document.getElementById('combat-title').textContent = `☠️ BOSS: ${enemy.name}!`;
+  } else {
+    combatBox.style.borderColor = '';
+    combatBox.style.boxShadow = '';
+    document.getElementById('combat-title').style.color = '';
+    document.getElementById('combat-title').textContent = `🪤 Capturing ${enemy.emoji} ${enemy.name}!`;
+  }
+  document.getElementById('enemy-emoji').textContent = enemy.emoji;
+  document.getElementById('enemy-name-text').textContent = isBoss ? `☠ ${enemy.name}` : enemy.name;
+  document.getElementById('combat-log-mini').innerHTML = '';
+  updateCombatUI();
+  if (isBoss && enemy.taunt) {
+    combatLog(`<span style="color:${enemy.color}">⚠ ${enemy.taunt}</span>`);
+  } else {
+    combatLog(`A wild ${enemy.emoji} <strong>${enemy.name}</strong> resists capture!`);
+  }
+  combatLog(`Your stats: ATK ${player.atk} · DEF ${player.def}`);
+  enableCombatBtns(true);
+  updateSpecialBtn();
+}
+
+function updateSpecialBtn() {
+  const btn = document.getElementById('special-btn');
+  const specialThreshold = player.upgrades.netBonus ? 2 : 3;
+  if (specialReady >= specialThreshold) {
+    btn.textContent = '🕸️ Net Strike';
+    btn.disabled = false;
+  } else {
+    btn.textContent = `🕸️ Net Strike (${specialThreshold - specialReady} turns)`;
+    btn.disabled = true;
+  }
+}
+
+function combatAction(action) {
+  if (!inCombat || enemyTurn) return;
+  enableCombatBtns(false);
+  combatTurnCount++;
+  specialReady++;
+  playerDefending = false;
+
+  let dmg = 0, msg = '';
+
+  if (action === 'attack') {
+    dmg = Math.max(1, player.atk + Math.floor(Math.random() * 8) - 3 - combatEnemy.def);
+    const crit = Math.random() < (player.upgrades.critBoost ? 0.30 : 0.15);
+    if (crit) { dmg = Math.floor(dmg * 1.8); msg = `💥 Perfect stun! You deal <strong>${dmg}</strong> damage!`; }
+    else msg = `🤺 You stun for <strong>${dmg}</strong> damage.`;
+    combatEnemy.hp = Math.max(0, combatEnemy.hp - dmg);
+    combatLog(msg);
+  } else if (action === 'special') {
+    const threshold = player.upgrades.netBonus ? 2 : 3;
+    if (specialReady < threshold) return;
+    specialReady = 0;
+    dmg = Math.max(2, player.atk * 2 - combatEnemy.def);
+    msg = `🕸️ NET STRIKE! You deal <strong>${dmg}</strong> damage!`;
+    combatEnemy.hp = Math.max(0, combatEnemy.hp - dmg);
+    combatLog(msg);
+    for (let i = 0; i < 8; i++) particles.push({ x: player.x, y: player.y, life: 30, color: '#4dd0e1', size: 3, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4 });
+  } else if (action === 'defend') {
+    playerDefending = true;
+    combatLog(`🛡️ You brace for impact! (Def doubled this turn)`);
+  } else if (action === 'flee') {
+    if (Math.random() < 0.5) {
+      combatLog(`🏃 You successfully retreated!`);
+      addLog(`Retreated from ${combatEnemy.emoji} ${combatEnemy.name}.`, 'info');
+      endCombat(false);
+      return;
+    } else {
+      combatLog(`❌ Retreat failed! The ${combatEnemy.name} blocks your path!`);
+    }
+  }
+
+  updateCombatUI();
+
+  if (combatEnemy.hp <= 0) {
+    combatVictory();
+    return;
+  }
+
+  // Enemy turn
+  enemyTurn = true;
+  setTimeout(() => {
+    const eDmg = Math.max(1, combatEnemy.atk + Math.floor(Math.random() * 6) - 2 - player.def - (playerDefending ? player.def : 0));
+    player.hp = Math.max(0, player.hp - eDmg);
+    combatLog(`${combatEnemy.emoji} ${combatEnemy.name} fights back for <strong>${eDmg}</strong> damage!`);
+    updateCombatUI();
+    updateHUD();
+    if (player.hp <= 0) {
+      combatDefeat();
+      return;
+    }
+    enemyTurn = false;
+    enableCombatBtns(true);
+    updateSpecialBtn();
+  }, 800);
+}
+
+function combatVictory() {
+  const xpGain = combatEnemy.xp;
+  let goldGain = combatEnemy.gold;
+  if (player.upgrades.goldBoost) goldGain = Math.floor(goldGain * 1.5);
+  player.gold += goldGain;
+  player.xp += xpGain;
+  const gemGain = combatEnemy.gems || 0;
+  if (gemGain) player.gems += gemGain;
+
+  if (combatEnemy.boss) {
+    combatLog(`<span style="color:${combatEnemy.color}">🏆 BOSS CAPTURED! +${xpGain} XP, +${goldGain}💰, +${gemGain}💎!</span>`);
+    addLog(`☠️ BOSS Captured: ${combatEnemy.emoji} ${combatEnemy.name}! +${xpGain} XP +${goldGain}💰 +${gemGain}💎`, 'treasure');
+    // Big particle burst for bosses
+    for (let i = 0; i < 30; i++) particles.push({ x: combatEnemy.x, y: combatEnemy.y, life: 60, color: combatEnemy.color, size: 4 + Math.random()*4, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6 });
+    for (let i = 0; i < 20; i++) particles.push({ x: combatEnemy.x, y: combatEnemy.y, life: 50, color: '#ffd700', size: 3, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5 });
+  } else {
+    combatLog(`🎉 Captured! +${xpGain} XP, +${goldGain} gold!`);
+    addLog(`Captured ${combatEnemy.emoji} ${combatEnemy.name}! +${xpGain} XP +${goldGain}💰`, 'xp');
+    for (let i = 0; i < 10; i++) particles.push({ x: combatEnemy.x, y: combatEnemy.y, life: 40, color: '#4dd0e1', size: 3, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3 });
+  }
+
+  entities.splice(combatIdx, 1);
+  setTimeout(spawnOneEnemy, 15000);
+
+  checkLevelUp();
+  if (player.upgrades.medBay) {
+    const heal = 30;
+    player.hp = Math.min(player.hp + heal, player.maxHp);
+    addLog(`💊 Medical Bay: Healed ${heal} HP.`, 'heal');
+  }
+  updateHUD();
+  setTimeout(() => endCombat(true), 1200);
+}
+
+function spawnOneBoss(type) {
+  entities.push({
+    type: 'enemy',
+    x: 300 + Math.random() * (WORLD.width - 600),
+    y: 300 + Math.random() * (WORLD.height - 600),
+    ...JSON.parse(JSON.stringify(type)),
+    maxHp: type.hp,
+    id: Math.random(),
+    bobOffset: Math.random() * Math.PI * 2,
+    patrol: { x: 0, y: 0, timer: 0, dirX: (Math.random()-0.5)*2, dirY: (Math.random()-0.5)*2 }
+  });
+}
+
+function spawnOneEnemy() {
+  // 8% chance to spawn a boss when a creature is replaced
+  if (Math.random() < 0.08) {
+    const bossType = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
+    spawnOneBoss(bossType);
+    addLog(`☠️ A ${bossType.name} has appeared in the deep! Approach with caution!`, 'dmg');
+    return;
+  }
+  let pool = ENEMY_TYPES.filter(t => t.level <= player.level + 1);
+  if (pool.length === 0) pool = ENEMY_TYPES;
+  let type = pool[Math.floor(Math.random() * pool.length)];
+  entities.push({
+    type: 'enemy',
+    x: 200 + Math.random() * (WORLD.width - 400),
+    y: 200 + Math.random() * (WORLD.height - 400),
+    ...JSON.parse(JSON.stringify(type)),
+    maxHp: type.hp,
+    id: Math.random(),
+    bobOffset: Math.random() * Math.PI * 2,
+    patrol: { x: 0, y: 0, timer: 0, dirX: (Math.random()-0.5)*2, dirY: (Math.random()-0.5)*2 }
+  });
+}
+
+function combatDefeat() {
+  combatLog(`💀 The creature escaped! Retreating to surface...`);
+  addLog(`Overpowered by ${combatEnemy.emoji} ${combatEnemy.name}. Respawned with 30 HP.`, 'dmg');
+  player.hp = 30;
+  player.gold = Math.max(0, player.gold - Math.floor(player.gold * 0.1));
+  player.x = WORLD.width / 2 + (Math.random() - 0.5) * 200;
+  player.y = WORLD.height / 2 + (Math.random() - 0.5) * 200;
+  updateHUD();
+  setTimeout(() => endCombat(false), 1500);
+}
+
+function endCombat(victory) {
+  inCombat = false;
+  enemyTurn = false;
+  document.getElementById('combat-modal').classList.remove('active');
+  enableCombatBtns(true);
+  updateHUD();
+}
+
+function combatLog(msg) {
+  const el = document.getElementById('combat-log-mini');
+  el.innerHTML += `<div>${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function enableCombatBtns(enabled) {
+  document.querySelectorAll('.action-btn').forEach(b => b.disabled = !enabled);
+  if (enabled) updateSpecialBtn();
+}
+
+function updateCombatUI() {
+  document.getElementById('player-hp-text').textContent = `${player.hp}/${player.maxHp}`;
+  document.getElementById('player-combat-hp').style.width = (player.hp / player.maxHp * 100) + '%';
+  document.getElementById('enemy-hp-text').textContent = `${combatEnemy.hp}/${combatEnemy.maxHp}`;
+  document.getElementById('enemy-combat-hp').style.width = (combatEnemy.hp / combatEnemy.maxHp * 100) + '%';
+}
+
+// ============================================================
+//  LEVELING
+// ============================================================
+
+function checkLevelUp() {
+  while (player.xp >= player.xpNext) {
+    player.xp -= player.xpNext;
+    player.level++;
+    player.xpNext = Math.floor(player.xpNext * 1.4);
+    player.atk += 3;
+    player.def += 2;
+    player.maxHp += 20;
+    player.hp = player.maxHp;
+    addLog(`⭐ Level Up! Now Level ${player.level}! ATK+3 DEF+2 HP+20`, 'xp');
+    showLevelBanner();
+    // Respawn world entities at new difficulty
+    if (player.level % 3 === 0) {
+      setTimeout(() => {
+        addLog('🌊 New creatures have appeared in the deep!', 'info');
+        for (let i = 0; i < 4; i++) spawnOneEnemy();
+      }, 2000);
+    }
+  }
+  updateHUD();
+}
+
+function showLevelBanner() {
+  const banner = document.getElementById('level-banner');
+  document.getElementById('level-banner-text').textContent = `You reached Level ${player.level}!`;
+  banner.style.display = 'block';
+  banner.style.animation = 'none';
+  banner.offsetHeight; // reflow
+  banner.style.animation = 'levelup 2.5s ease-out forwards';
+  setTimeout(() => { banner.style.display = 'none'; }, 2500);
+}
+
+// ============================================================
+//  HUD & UI
+// ============================================================
+
+function updateHUD() {
+  document.getElementById('hp-bar').style.width = (player.hp / player.maxHp * 100) + '%';
+  document.getElementById('hp-val').textContent = `${player.hp}/${player.maxHp}`;
+  document.getElementById('xp-bar').style.width = (player.xp / player.xpNext * 100) + '%';
+  document.getElementById('xp-val').textContent = `${player.xp}/${player.xpNext}`;
+  document.getElementById('hud-level').textContent = player.level;
+  document.getElementById('stat-atk').textContent = player.atk;
+  document.getElementById('stat-def').textContent = player.def;
+  document.getElementById('stat-gold').textContent = player.gold;
+  document.getElementById('stat-gems').textContent = player.gems;
+}
+
+function addLog(msg, type = 'info') {
+  logEntries.unshift({ msg, type });
+  if (logEntries.length > 60) logEntries.pop();
+  const log = document.getElementById('combat-log');
+  log.innerHTML = logEntries.slice(0, 40).map(e => `<div class="log-entry ${e.type}">${e.msg}</div>`).join('');
+}
+
+function spawnNotif(text, x, y) {
+  const div = document.createElement('div');
+  div.className = 'notif';
+  div.textContent = text;
+  div.style.left = (document.getElementById('game-area').getBoundingClientRect().left + x) + 'px';
+  div.style.top = (document.getElementById('game-area').getBoundingClientRect().top + y) + 'px';
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2000);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'inv') updateInventoryPanel();
+  if (name === 'upgrades') updateUpgradesPanel();
+}
+
+function updateInventoryPanel() {
+  const cons = document.getElementById('inv-consumables');
+  cons.innerHTML = '';
+  const items = [
+    { key: 'healthPotion', icon: '🧪', name: 'Health Potion', desc: 'Restores 40 HP', action: 'useHealthPotion' },
+    { key: 'oxygenTank', icon: '🫧', name: 'Oxygen Tank', desc: 'Restores 20 HP over time', action: 'useOxygenTank' },
+  ];
+  items.forEach(it => {
+    const qty = player.inventory[it.key] || 0;
+    const div = document.createElement('div');
+    div.className = 'inv-item';
+    div.innerHTML = `<div class="item-icon">${it.icon}</div><div class="item-info"><div class="item-name">${it.name}</div><div class="item-desc">${it.desc}</div></div><div class="item-qty">x${qty}</div>`;
+    if (qty > 0) div.addEventListener('click', () => window[it.action]());
+    else div.style.opacity = '0.4';
+    cons.appendChild(div);
+  });
+
+  // Collected treasures log
+  const tDiv = document.getElementById('inv-treasures');
+  tDiv.innerHTML = '';
+  if (player.collectedTreasures.length === 0) {
+    tDiv.innerHTML = '<div style="font-size:0.75rem;color:var(--text);opacity:0.5">No treasures found yet.</div>';
+    return;
+  }
+  // Group by name
+  const grouped = {};
+  player.collectedTreasures.forEach(t => {
+    if (!grouped[t.name]) grouped[t.name] = { ...t, count: 0, totalGold: 0, totalGems: 0 };
+    grouped[t.name].count++;
+    grouped[t.name].totalGold += t.gold;
+    grouped[t.name].totalGems += t.gems;
+  });
+  Object.values(grouped).forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'inv-item';
+    let rewardStr = `+${t.totalGold}💰`;
+    if (t.totalGems) rewardStr += ` +${t.totalGems}💎`;
+    if (t.hpItem) rewardStr += ` +${t.count}🧪`;
+    if (t.oxyItem) rewardStr += ` +${t.count}🫧`;
+    div.innerHTML = `<div class="item-icon">${t.icon}</div><div class="item-info"><div class="item-name">${t.name}</div><div class="item-desc">${rewardStr}</div></div><div class="item-qty">x${t.count}</div>`;
+    tDiv.appendChild(div);
+  });
+}
+
+function useHealthPotion() {
+  if (!player.inventory.healthPotion) return;
+  player.inventory.healthPotion--;
+  const heal = 40;
+  player.hp = Math.min(player.hp + heal, player.maxHp);
+  addLog(`🧪 Used Health Potion. Restored ${heal} HP.`, 'heal');
+  updateHUD();
+  updateInventoryPanel();
+}
+
+function useOxygenTank() {
+  if (!player.inventory.oxygenTank) return;
+  player.inventory.oxygenTank--;
+  const heal = 20;
+  player.hp = Math.min(player.hp + heal, player.maxHp);
+  addLog(`🫧 Used Oxygen Tank. Restored ${heal} HP.`, 'heal');
+  updateHUD();
+  updateInventoryPanel();
+}
+
+function updateUpgradesPanel() {
+  const list = document.getElementById('upgrades-list');
+  list.innerHTML = '';
+
+  const categories = ['Combat', 'Vessel', 'Station', 'Exploration'];
+  categories.forEach(cat => {
+    const catUpgrades = UPGRADES.filter(u => u.cat === cat);
+    const header = document.createElement('div');
+    header.style.cssText = 'font-family:Cinzel,serif;font-size:0.72rem;color:var(--seafoam);letter-spacing:0.12em;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid var(--ocean1);';
+    header.textContent = `--- ${cat.toUpperCase()} ---`;
+    list.appendChild(header);
+
+    catUpgrades.forEach(upg => {
+      const owned = !!player.upgrades[upg.id];
+      const reqMet = !upg.requires || !!player.upgrades[upg.requires];
+      const canAfford = canBuyUpgrade(upg);
+      const card = document.createElement('div');
+      card.className = 'upgrade-card';
+      if (!reqMet) card.style.opacity = '0.5';
+
+      let costStr = '';
+      if (upg.cost.gold) costStr += `${upg.cost.gold}💰 `;
+      if (upg.cost.gems) costStr += `${upg.cost.gems}💎`;
+
+      let reqStr = '';
+      if (upg.requires) {
+        const reqUpg = UPGRADES.find(u => u.id === upg.requires);
+        reqStr = `<div style="font-size:0.7rem;color:#ffb74d;margin-bottom:4px">⚠ Requires: ${reqUpg ? reqUpg.name : upg.requires}</div>`;
+      }
+
+      const loreStr = upg.lore
+        ? `<div style="background:rgba(0,188,212,0.08);border-left:2px solid var(--teal);padding:5px 8px;margin:5px 0;font-size:0.72rem;color:var(--seafoam);font-style:italic;">💡 Did you know? ${upg.desc}</div>`
+        : `<p>${upg.desc}</p>`;
+
+      card.innerHTML = `
+        <h3>${upg.icon} ${upg.name}</h3>
+        ${loreStr}
+        <p style="color:var(--green);font-size:0.72rem">Effect: ${upg.effect}</p>
+        ${reqStr}
+        <div class="cost">Cost: ${costStr}</div>
+        ${owned
+          ? `<div class="owned">✅ Installed</div>`
+          : `<button class="upgrade-btn" ${(canAfford && reqMet) ? '' : 'disabled'} onclick="buyUpgrade('${upg.id}')">
+              ${!reqMet ? '🔒 Locked' : canAfford ? '⚙️ Install' : '🔒 Not enough resources'}
+            </button>`}
+      `;
+      list.appendChild(card);
+    });
+  });
+}
+
+function canBuyUpgrade(upg) {
+  if (player.upgrades[upg.id]) return false;
+  if (upg.requires && !player.upgrades[upg.requires]) return false;
+  if (upg.cost.gold && player.gold < upg.cost.gold) return false;
+  if (upg.cost.gems && player.gems < upg.cost.gems) return false;
+  return true;
+}
+
+function buyUpgrade(id) {
+  const upg = UPGRADES.find(u => u.id === id);
+  if (!upg || !canBuyUpgrade(upg)) return;
+  if (upg.cost.gold) player.gold -= upg.cost.gold;
+  if (upg.cost.gems) player.gems -= upg.cost.gems;
+  player.upgrades[id] = true;
+  upg.apply();
+  addLog(`⚙️ Installed: ${upg.name}! ${upg.effect}`, 'treasure');
+  updateHUD();
+  updateUpgradesPanel();
+}
+
+// ============================================================
+//  PROTEUS INTERIOR
+// ============================================================
+
+let proteusFrame = 0;
+let proteusAnimId = null;
+
+function enterProteus() {
+  document.getElementById('tooltip').style.display = 'none';
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('proteus-screen').classList.add('active');
+  PROTEUS.playerInside = true;
+
+  // Trigger heal if available
+  const now = Date.now();
+  const coolingDown = PROTEUS.healCooldown && (now - PROTEUS.healCooldown) < PROTEUS.COOLDOWN_MS;
+  if (!coolingDown && player.hp < player.maxHp) {
+    const healed = player.maxHp - player.hp;
+    player.hp = player.maxHp;
+    PROTEUS.healCooldown = now;
+    addLog(`🏠 Proteus Station: Fully restored ${healed} HP!`, 'heal');
+  }
+
+  // Emergency Kit: replenish 2 health potions on entry
+  if (player.upgrades.emergencyKit) {
+    player.inventory.healthPotion = (player.inventory.healthPotion || 0) + 2;
+    addLog('🆘 Emergency Kit replenished: +2 health potions.', 'heal');
+  }
+
+  updateProteusUI();
+  resizeProteusCanvas();
+  proteusFrame = 0;
+  proteusAnimId = requestAnimationFrame(proteusLoop);
+}
+
+function exitProteus() {
+  document.getElementById('proteus-screen').classList.remove('active');
+  document.getElementById('game-screen').classList.add('active');
+  // Move player just outside the station radius so checkProteus doesn't immediately re-trigger
+  player.x = PROTEUS.x + PROTEUS.radius + 30;
+  player.y = PROTEUS.y;
+  player.moving = false;
+  PROTEUS.playerInside = false;
+  PROTEUS.exitCooldown = Date.now(); // prevent instant re-entry
+  if (proteusAnimId) { cancelAnimationFrame(proteusAnimId); proteusAnimId = null; }
+  updateCamera();
+  addLog('🤿 Dived out of Proteus Station.', 'info');
+}
+
+function resizeProteusCanvas() {
+  const pc = document.getElementById('proteus-canvas');
+  const area = pc.parentElement;
+  pc.width = area.clientWidth - 280;
+  pc.height = area.clientHeight;
+}
+
+function proteusLoop() {
+  proteusFrame++;
+  drawProteusInterior();
+  proteusAnimId = requestAnimationFrame(proteusLoop);
+}
+
+function drawProteusInterior() {
+  const pc = document.getElementById('proteus-canvas');
+  const cx = pc.getContext('2d');
+  const W = pc.width, H = pc.height;
+  cx.clearRect(0, 0, W, H);
+
+  // Background - deep ocean visible through hull
+  const bg = cx.createRadialGradient(W/2, H/2, 80, W/2, H/2, W * 0.8);
+  bg.addColorStop(0, '#0d2b3e');
+  bg.addColorStop(1, '#020c1b');
+  cx.fillStyle = bg;
+  cx.fillRect(0, 0, W, H);
+
+  // Ambient light rays through porthole
+  cx.save();
+  for (let i = 0; i < 4; i++) {
+    const angle = (proteusFrame * 0.003 + i * 0.6);
+    const rx = W * 0.5 + Math.sin(angle) * 30;
+    const gr = cx.createLinearGradient(rx, 0, rx + 40, H);
+    gr.addColorStop(0, 'rgba(79,195,247,0.04)');
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = gr;
+    cx.beginPath();
+    cx.moveTo(rx, 0); cx.lineTo(rx + 30, H); cx.lineTo(rx + 50, H); cx.lineTo(rx + 20, 0);
+    cx.fill();
+  }
+  cx.restore();
+
+  // ---- FLOOR ----
+  const floorY = H * 0.72;
+  const floorGrad = cx.createLinearGradient(0, floorY, 0, H);
+  floorGrad.addColorStop(0, '#0a1e2e');
+  floorGrad.addColorStop(1, '#04111e');
+  cx.fillStyle = floorGrad;
+  cx.beginPath();
+  cx.roundRect(W * 0.05, floorY, W * 0.9, H - floorY, [0, 0, 12, 12]);
+  cx.fill();
+  cx.strokeStyle = '#1565c0';
+  cx.lineWidth = 1.5;
+  cx.stroke();
+
+  // Floor grid lines
+  cx.save();
+  cx.strokeStyle = 'rgba(21,101,192,0.25)';
+  cx.lineWidth = 1;
+  for (let gx = W * 0.05; gx < W * 0.95; gx += 50) {
+    cx.beginPath(); cx.moveTo(gx, floorY); cx.lineTo(gx, H); cx.stroke();
+  }
+  cx.restore();
+
+  // ---- WALLS / HULL ----
+  const wallGrad = cx.createLinearGradient(0, 0, 0, floorY);
+  wallGrad.addColorStop(0, '#071828');
+  wallGrad.addColorStop(1, '#0d2540');
+  cx.fillStyle = wallGrad;
+  cx.fillRect(W * 0.05, H * 0.08, W * 0.9, floorY - H * 0.08);
+  // Wall border
+  cx.strokeStyle = '#1565c0';
+  cx.lineWidth = 2;
+  cx.strokeRect(W * 0.05, H * 0.08, W * 0.9, floorY - H * 0.08);
+
+  // ---- CEILING PIPES ----
+  cx.save();
+  [0.2, 0.45, 0.7].forEach(px => {
+    const x = W * px;
+    cx.fillStyle = '#1a3a5c';
+    cx.fillRect(x, H * 0.08, 18, 30);
+    cx.fillStyle = '#243d5c';
+    cx.fillRect(x + 2, H * 0.08, 14, 28);
+    // pipe ring
+    cx.fillStyle = '#2e6da4';
+    cx.fillRect(x - 3, H * 0.08 + 10, 24, 6);
+  });
+  cx.restore();
+
+  // ---- PORTHOLES (left and right walls) ----
+  [[W * 0.08, H * 0.35], [W * 0.08, H * 0.55], [W * 0.92, H * 0.35], [W * 0.92, H * 0.55]].forEach(([px, py]) => {
+    // Outer frame
+    cx.beginPath();
+    cx.arc(px, py, 28, 0, Math.PI * 2);
+    cx.fillStyle = '#0d2540';
+    cx.fill();
+    cx.strokeStyle = '#4fc3f7';
+    cx.lineWidth = 3;
+    cx.stroke();
+    // Water outside
+    const waterGrad = cx.createRadialGradient(px, py, 4, px, py, 24);
+    waterGrad.addColorStop(0, 'rgba(30,100,160,0.7)');
+    waterGrad.addColorStop(1, 'rgba(5,20,50,0.9)');
+    cx.beginPath();
+    cx.arc(px, py, 24, 0, Math.PI * 2);
+    cx.fillStyle = waterGrad;
+    cx.fill();
+    // Bubbles outside porthole
+    for (let b = 0; b < 3; b++) {
+      const bx = px + Math.sin(proteusFrame * 0.05 + b * 2) * 10;
+      const by = py - ((proteusFrame * 0.4 + b * 20) % 40) + 10;
+      cx.beginPath();
+      cx.arc(bx, by, 2, 0, Math.PI * 2);
+      cx.strokeStyle = 'rgba(150,220,255,0.5)';
+      cx.lineWidth = 1;
+      cx.stroke();
+    }
+    // Shine
+    cx.beginPath();
+    cx.ellipse(px - 8, py - 8, 7, 4, -0.5, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(255,255,255,0.15)';
+    cx.fill();
+  });
+
+  // ---- CONTROL CONSOLE (back wall center) ----
+  const conX = W / 2, conY = H * 0.42;
+  // Console body
+  cx.fillStyle = '#0a1e30';
+  cx.beginPath();
+  cx.roundRect(conX - 100, H * 0.15, 200, H * 0.35, 6);
+  cx.fill();
+  cx.strokeStyle = '#2e6da4';
+  cx.lineWidth = 2;
+  cx.stroke();
+  // Screen
+  const screenGrad = cx.createLinearGradient(conX - 80, H * 0.18, conX + 80, H * 0.35);
+  screenGrad.addColorStop(0, '#001a2e');
+  screenGrad.addColorStop(1, '#003d5c');
+  cx.fillStyle = screenGrad;
+  cx.beginPath();
+  cx.roundRect(conX - 80, H * 0.18, 160, H * 0.18, 4);
+  cx.fill();
+  cx.strokeStyle = '#4fc3f7';
+  cx.lineWidth = 1;
+  cx.stroke();
+  // Screen content - sonar sweep
+  cx.save();
+  cx.beginPath();
+  cx.roundRect(conX - 80, H * 0.18, 160, H * 0.18, 4);
+  cx.clip();
+  cx.strokeStyle = 'rgba(0,188,212,0.15)';
+  cx.lineWidth = 1;
+  for (let r = 20; r < 80; r += 20) {
+    cx.beginPath();
+    cx.arc(conX, H * 0.18 + H * 0.09, r, 0, Math.PI * 2);
+    cx.stroke();
+  }
+  // Sonar sweep line
+  const sweep = (proteusFrame * 0.04) % (Math.PI * 2);
+  cx.strokeStyle = 'rgba(0,230,118,0.7)';
+  cx.lineWidth = 1.5;
+  cx.beginPath();
+  cx.moveTo(conX, H * 0.18 + H * 0.09);
+  cx.lineTo(conX + Math.cos(sweep) * 72, H * 0.18 + H * 0.09 + Math.sin(sweep) * 50);
+  cx.stroke();
+  // Entity blips on sonar
+  entities.slice(0, 6).forEach((ent, i) => {
+    const bx = conX + Math.sin(i * 1.1 + proteusFrame * 0.01) * (20 + i * 7);
+    const by = H * 0.18 + H * 0.09 + Math.cos(i * 1.3) * (15 + i * 5);
+    cx.beginPath();
+    cx.arc(bx, by, 2.5, 0, Math.PI * 2);
+    cx.fillStyle = ent.boss ? ent.color : '#ef5350';
+    cx.fill();
+  });
+  cx.restore();
+
+  // Console buttons row
+  const btnColors = ['#ef5350','#ffd700','#69f0ae','#4fc3f7','#ab47bc'];
+  btnColors.forEach((c, i) => {
+    const bx = conX - 80 + 20 + i * 32;
+    const by = H * 0.18 + H * 0.2;
+    const lit = Math.sin(proteusFrame * 0.05 + i) > 0.5;
+    cx.beginPath();
+    cx.arc(bx, by, 7, 0, Math.PI * 2);
+    cx.fillStyle = lit ? c : c + '44';
+    cx.shadowColor = c;
+    cx.shadowBlur = lit ? 10 : 2;
+    cx.fill();
+    cx.shadowBlur = 0;
+  });
+
+  // ---- MEDICAL BAY (right side) ----
+  const medX = W * 0.75, medY = H * 0.42;
+  cx.fillStyle = '#071828';
+  cx.beginPath();
+  cx.roundRect(medX - 55, medY, 110, 130, 6);
+  cx.fill();
+  cx.strokeStyle = '#00e676';
+  cx.lineWidth = 1.5;
+  cx.stroke();
+  // Cross symbol
+  cx.fillStyle = 'rgba(0,230,118,0.8)';
+  cx.fillRect(medX - 5, medY + 12, 10, 30);
+  cx.fillRect(medX - 18, medY + 22, 36, 10);
+  cx.font = '10px Crimson Text';
+  cx.fillStyle = '#4dd0e1';
+  cx.textAlign = 'center';
+  cx.fillText('MEDICAL BAY', medX, medY + 58);
+  // Status indicator
+  const healReady = !PROTEUS.healCooldown || (Date.now() - PROTEUS.healCooldown) >= PROTEUS.COOLDOWN_MS;
+  cx.beginPath();
+  cx.arc(medX, medY + 78, 8, 0, Math.PI * 2);
+  cx.fillStyle = healReady ? '#00e676' : '#ff9800';
+  cx.shadowColor = healReady ? '#00e676' : '#ff9800';
+  cx.shadowBlur = 10;
+  cx.fill();
+  cx.shadowBlur = 0;
+  cx.font = '9px Crimson Text';
+  cx.fillStyle = '#b0d4e8';
+  cx.fillText(healReady ? 'READY' : 'CHARGING', medX, medY + 100);
+
+  // ---- STORAGE CRATES (left side) ----
+  const crateX = W * 0.15, crateY = H * 0.48;
+  [[0, 0], [60, 0], [30, -38]].forEach(([dx, dy]) => {
+    cx.fillStyle = '#1a3a5c';
+    cx.beginPath();
+    cx.roundRect(crateX + dx - 25, crateY + dy, 50, 35, 3);
+    cx.fill();
+    cx.strokeStyle = '#2e6da4';
+    cx.lineWidth = 1;
+    cx.stroke();
+    cx.strokeStyle = '#4fc3f7';
+    cx.lineWidth = 0.5;
+    cx.beginPath();
+    cx.moveTo(crateX + dx, crateY + dy);
+    cx.lineTo(crateX + dx, crateY + dy + 35);
+    cx.stroke();
+    cx.beginPath();
+    cx.moveTo(crateX + dx - 25, crateY + dy + 17);
+    cx.lineTo(crateX + dx + 25, crateY + dy + 17);
+    cx.stroke();
+  });
+  cx.font = '10px Crimson Text';
+  cx.fillStyle = '#4fc3f7';
+  cx.textAlign = 'center';
+  cx.fillText('STORAGE', crateX + 30, crateY + 55);
+
+  // ---- DIVER character standing inside ----
+  const diverX = W / 2 - 80;
+  const diverY = floorY - 5;
+  cx.save();
+  cx.translate(diverX, diverY);
+  cx.scale(1.4, 1.4);
+  drawDiverOnCtx(cx);
+  cx.restore();
+
+  // ---- AMBIENT PARTICLES (dust/bubbles inside) ----
+  cx.save();
+  for (let i = 0; i < 8; i++) {
+    const px2 = W * 0.1 + ((i * 137 + proteusFrame * 0.3) % (W * 0.8));
+    const py2 = H * 0.1 + ((i * 73 + proteusFrame * 0.15) % (H * 0.55));
+    cx.beginPath();
+    cx.arc(px2, py2, 1.5, 0, Math.PI * 2);
+    cx.fillStyle = `rgba(150,200,255,${0.1 + Math.sin(proteusFrame * 0.05 + i) * 0.08})`;
+    cx.fill();
+  }
+  cx.restore();
+
+  // ---- STATION NAME PLAQUE ----
+  cx.save();
+  cx.font = 'bold 13px Cinzel, serif';
+  cx.textAlign = 'center';
+  cx.fillStyle = '#e0f7fa';
+  cx.shadowColor = '#4fc3f7';
+  cx.shadowBlur = 8;
+  cx.fillText('⚓ PROTEUS UNDERWATER RESEARCH STATION ⚓', W / 2, H * 0.13);
+  cx.shadowBlur = 0;
+  cx.font = '10px Crimson Text';
+  cx.fillStyle = '#4fc3f7';
+  cx.fillText('Est. 1962 · Jacques-Yves Cousteau Foundation', W / 2, H * 0.13 + 16);
+  cx.restore();
+}
+
+function updateProteusUI() {
+  document.getElementById('p-hp-label').textContent = `${player.hp}/${player.maxHp}`;
+  document.getElementById('p-gold-label').textContent = player.gold;
+  document.getElementById('p-gems-label').textContent = player.gems;
+
+  // Sonar / medbay upgrade status
+  document.getElementById('sonar-status').textContent = player.upgrades.sonar ? 'Online' : 'Offline';
+  document.getElementById('sonar-status').style.color = player.upgrades.sonar ? '#69f0ae' : 'var(--text)';
+  document.getElementById('medbay-status').textContent = player.upgrades.medBay ? 'Online' : 'Offline';
+  document.getElementById('medbay-status').style.color = player.upgrades.medBay ? '#69f0ae' : 'var(--text)';
+  document.getElementById('rapidmedbay-status').textContent = player.upgrades.rapidMedBay ? '3 min cooldown' : 'Offline';
+  document.getElementById('rapidmedbay-status').style.color = player.upgrades.rapidMedBay ? '#69f0ae' : 'var(--text)';
+  document.getElementById('emergencykit-status').textContent = player.upgrades.emergencyKit ? 'Online' : 'Offline';
+  document.getElementById('emergencykit-status').style.color = player.upgrades.emergencyKit ? '#69f0ae' : 'var(--text)';
+
+  // Sonar report
+  const sonarEl = document.getElementById('sonar-report');
+  const enemies = entities.filter(e => e.type === 'enemy');
+  const bosses = enemies.filter(e => e.boss);
+  const treasures = entities.filter(e => e.type === 'treasure');
+  sonarEl.innerHTML = `
+    <div>🔴 Creatures detected: <strong style="color:#ef5350">${enemies.length}</strong></div>
+    <div>☠ Boss signatures: <strong style="color:#ff9800">${bosses.length}</strong></div>
+    <div>💰 Treasure signals: <strong style="color:#ffd700">${treasures.length}</strong></div>
+    <div>🏠 Your position: <strong style="color:#4fc3f7">Proteus Base</strong></div>
+  `;
+
+  // Heal button status
+  const now = Date.now();
+  const coolingDown = PROTEUS.healCooldown && (now - PROTEUS.healCooldown) < PROTEUS.COOLDOWN_MS;
+  const healBtn = document.getElementById('interior-heal-btn');
+  const healStatus = document.getElementById('heal-status-interior');
+  if (player.hp >= player.maxHp && !coolingDown) {
+    healStatus.textContent = '✅ HP is full.';
+    healBtn.disabled = true;
+    healBtn.style.opacity = '0.4';
+  } else if (coolingDown) {
+    const remaining = Math.ceil((PROTEUS.COOLDOWN_MS - (now - PROTEUS.healCooldown)) / 1000);
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    healStatus.innerHTML = `⏳ Recharging: <strong>${mins}m ${secs}s</strong>`;
+    healBtn.disabled = true;
+    healBtn.style.opacity = '0.4';
+  } else {
+    healStatus.innerHTML = `✚ HP: <strong style="color:#ef5350">${player.hp}</strong> / ${player.maxHp} — Ready to restore!`;
+    healBtn.disabled = false;
+    healBtn.style.opacity = '1';
+  }
+
+  // Interior inventory mirrors main panel
+  const pCons = document.getElementById('p-inv-consumables');
+  pCons.innerHTML = '';
+  [
+    { key: 'healthPotion', icon: '🧪', name: 'Health Potion', desc: 'Restores 40 HP', action: 'useHealthPotion' },
+    { key: 'oxygenTank', icon: '🫧', name: 'Oxygen Tank', desc: '+20 HP', action: 'useOxygenTank' },
+  ].forEach(it => {
+    const qty = player.inventory[it.key] || 0;
+    const div = document.createElement('div');
+    div.className = 'inv-item';
+    div.innerHTML = `<div class="item-icon">${it.icon}</div><div class="item-info"><div class="item-name">${it.name}</div><div class="item-desc">${it.desc}</div></div><div class="item-qty">x${qty}</div>`;
+    if (qty > 0) div.addEventListener('click', () => { window[it.action](); updateProteusUI(); });
+    else div.style.opacity = '0.4';
+    pCons.appendChild(div);
+  });
+
+  // Interior treasure list
+  const pTreas = document.getElementById('p-inv-treasures');
+  pTreas.innerHTML = '';
+  if (player.collectedTreasures.length === 0) {
+    pTreas.innerHTML = '<div style="font-size:0.75rem;color:var(--text);opacity:0.5">None found yet.</div>';
+  } else {
+    const grouped = {};
+    player.collectedTreasures.forEach(t => {
+      if (!grouped[t.name]) grouped[t.name] = { ...t, count: 0, totalGold: 0, totalGems: 0 };
+      grouped[t.name].count++;
+      grouped[t.name].totalGold += t.gold;
+      grouped[t.name].totalGems += t.gems;
+    });
+    Object.values(grouped).forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'inv-item';
+      let rewardStr = `+${t.totalGold}💰`;
+      if (t.totalGems) rewardStr += ` +${t.totalGems}💎`;
+      div.innerHTML = `<div class="item-icon">${t.icon}</div><div class="item-info"><div class="item-name">${t.name}</div><div class="item-desc">${rewardStr}</div></div><div class="item-qty">x${t.count}</div>`;
+      pTreas.appendChild(div);
+    });
+  }
+
+  // Sync log entries into proteus log
+  const pl = document.getElementById('proteus-log-list');
+  pl.innerHTML = logEntries.slice(0, 30).map(e => `<div class="log-entry ${e.type}" style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${e.msg}</div>`).join('');
+}
+
+function interiorHeal() {
+  const now = Date.now();
+  const coolingDown = PROTEUS.healCooldown && (now - PROTEUS.healCooldown) < PROTEUS.COOLDOWN_MS;
+  if (coolingDown || player.hp >= player.maxHp) return;
+  const healed = player.maxHp - player.hp;
+  player.hp = player.maxHp;
+  PROTEUS.healCooldown = now;
+  addLog(`🏥 Medical Bay: Restored ${healed} HP.`, 'heal');
+  updateHUD();
+  updateProteusUI();
+}
+
+function switchProteusTab(name, btn) {
+  ['status','log','inv','about'].forEach(t => {
+    document.getElementById(`proteus-tab-${t}`).style.display = 'none';
+    document.getElementById(`pt-tab-${t}`).classList.remove('active');
+  });
+  document.getElementById(`proteus-tab-${name}`).style.display = 'block';
+  btn.classList.add('active');
+  if (name === 'status') updateProteusUI();
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  updateCamera();
+  resizeProteusCanvas();
+});
+
+
+
+function initTitleBubbles() {
+  const container = document.getElementById('bubbles');
+  for (let i = 0; i < 20; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 10 + Math.random() * 40;
+    b.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${5+Math.random()*10}s;animation-delay:${Math.random()*8}s;`;
+    container.appendChild(b);
+  }
+}
+
+// ============================================================
+//  START GAME
+// ============================================================
+
+function startGame() {
+  document.getElementById('title-screen').classList.remove('active');
+  document.getElementById('game-screen').classList.add('active');
+  resizeCanvas();
+  initWorld();
+  updateHUD();
+  addLog('🌊 Welcome, Captain Cousteau! Explore the ocean depths.', 'info');
+  addLog('🎯 Click creatures to capture · Click chests to collect treasure', 'info');
+  addLog('⚙️ Collect gold and gems to upgrade your vessel!', 'info');
+  updateInventoryPanel();
+  updateUpgradesPanel();
+  // Draw diver on HUD canvas
+  const hudC = document.getElementById('hud-diver-canvas');
+  const hudCtx2 = hudC.getContext('2d');
+  hudCtx2.clearRect(0,0,40,48);
+  const savedCtx = ctx;
+  // Temporarily draw onto hudCtx2
+  (function(){
+    const c = hudC; const cx2 = hudCtx2;
+    cx2.save(); cx2.translate(20,28); cx2.scale(0.72,0.72);
+    drawDiverOnCtx(cx2); cx2.restore();
+  })();
+  // Also draw on combat canvas
+  drawCombatDiver();
+  requestAnimationFrame(gameLoop);
+}
+
+// ============================================================
+//  NAVAL PORTAL
+// ============================================================
+
+function checkNavalPortal() {
+  const now = Date.now();
+  if (!NAVAL_PORTAL.active && now >= NAVAL_PORTAL.nextOpenAt) {
+    NAVAL_PORTAL.active = true;
+    NAVAL_PORTAL.openedAt = now;
+    addLog('⚓ Naval portal open at the surface! Sail up to engage — 60 seconds!', 'treasure');
+  }
+  if (NAVAL_PORTAL.active && (now - NAVAL_PORTAL.openedAt) >= NAVAL_PORTAL.OPEN_MS) {
+    NAVAL_PORTAL.active = false;
+    NAVAL_PORTAL.nextOpenAt = now + NAVAL_PORTAL.CYCLE_MS;
+  }
+  if (!NAVAL_PORTAL.active) return;
+  if (NAVAL_PORTAL.exitCooldown && now - NAVAL_PORTAL.exitCooldown < 2000) return;
+  const dx = player.x - NAVAL_PORTAL.x;
+  const dy = player.y - NAVAL_PORTAL.y;
+  if (Math.sqrt(dx*dx + dy*dy) < NAVAL_PORTAL.radius) {
+    enterNaval();
+  }
+}
+
+function drawNavalPortal() {
+  const sx = NAVAL_PORTAL.x - cam.x;
+  const sy = NAVAL_PORTAL.y - cam.y;
+  if (sx < -120 || sx > canvas.width + 120 || sy < -120 || sy > canvas.height + 120) return;
+  const now = Date.now();
+  const t = frameCount * 0.04;
+
+  if (!NAVAL_PORTAL.active) {
+    const remaining = Math.max(0, NAVAL_PORTAL.nextOpenAt - now);
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    ctx.save();
+    ctx.beginPath(); ctx.arc(sx, sy, 40, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(100,100,150,0.3)'; ctx.lineWidth = 2;
+    ctx.setLineDash([6,5]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = '11px Cinzel, serif'; ctx.fillStyle = 'rgba(150,150,200,0.6)';
+    ctx.textAlign = 'center'; ctx.fillText('⚓ Naval', sx, sy - 6);
+    ctx.font = '10px Crimson Text'; ctx.fillStyle = 'rgba(120,120,180,0.6)';
+    ctx.fillText(`Opens in ${mins}:${secs.toString().padStart(2,'0')}`, sx, sy + 10);
+    ctx.restore();
+    return;
+  }
+
+  const timeLeft = Math.max(0, NAVAL_PORTAL.OPEN_MS - (now - NAVAL_PORTAL.openedAt));
+  const urgency = timeLeft < 15000 ? 0.5 + Math.sin(frameCount * 0.2) * 0.5 : 1;
+  ctx.save();
+  for (let r = 0; r < 3; r++) {
+    ctx.beginPath();
+    ctx.arc(sx, sy, 38 + r * 6, t + r, t + r + Math.PI * 1.5);
+    ctx.strokeStyle = `rgba(255,${180 - r*30},0,${0.5 * urgency})`;
+    ctx.lineWidth = 2; ctx.stroke();
+  }
+  const grd = ctx.createRadialGradient(sx, sy, 5, sx, sy, 38);
+  grd.addColorStop(0, `rgba(255,220,50,${0.6 * urgency})`);
+  grd.addColorStop(0.5, `rgba(200,120,0,${0.3 * urgency})`);
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(sx, sy, 38, 0, Math.PI * 2); ctx.fill();
+  ctx.font = '22px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('⚓', sx, sy);
+  ctx.font = 'bold 11px Cinzel, serif'; ctx.fillStyle = '#ffd700';
+  ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 8;
+  ctx.fillText('NAVAL BATTLE', sx, sy - 50);
+  ctx.shadowBlur = 0;
+  ctx.font = '10px Crimson Text';
+  ctx.fillStyle = timeLeft < 15000 ? '#ef5350' : '#ffb74d';
+  ctx.fillText(`⏱ ${Math.ceil(timeLeft / 1000)}s remaining`, sx, sy - 38);
+  ctx.restore();
+}
+
+// ============================================================
+//  NAVAL BATTLE ENGINE
+// ============================================================
+
+const naval = {
+  playerShip: { x: 0, y: 0, w: 80, h: 32, speed: 5, hp: 3, maxHp: 3 },
+  enemies: [], projectiles: [], enemyShots: [], explosions: [],
+  timer: 60, timerInterval: null,
+  sunk: 0, bonusXP: 0, bonusGold: 0,
+  fireCooldown: 0, frame: 0, animId: null, W: 0, H: 0, SEA_Y: 0,
+};
+
+const SHIP_TYPES = [
+  { name: 'Patrol Boat',      hp: 1, speed: 1.2, xp: 20,  gold: 15, w: 50, h: 22 },
+  { name: 'Destroyer',        hp: 2, speed: 0.9, xp: 35,  gold: 28, w: 70, h: 26 },
+  { name: 'Battleship',       hp: 4, speed: 0.6, xp: 70,  gold: 55, w: 90, h: 30 },
+  { name: 'U-Boat',           hp: 2, speed: 1.0, xp: 50,  gold: 40, w: 65, h: 20 },
+  { name: 'Aircraft Carrier', hp: 6, speed: 0.4, xp: 120, gold: 90, w: 110, h: 34 },
+];
+
+function enterNaval() {
+  document.getElementById('tooltip').style.display = 'none';
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('naval-screen').classList.add('active');
+
+  // Size the canvas synchronously — offsetWidth/Height are available immediately
+  // because the screen is now display:flex (absolute positioned, 100vw x 100vh)
+  function initNavalCanvas() {
+    const wrap = document.getElementById('naval-canvas-wrap');
+    const nc   = document.getElementById('naval-canvas');
+    const w = wrap.offsetWidth  || window.innerWidth;
+    const h = wrap.offsetHeight || Math.floor(window.innerHeight * 0.75);
+    nc.width  = w;
+    nc.height = h;
+    naval.W    = w;
+    naval.H    = h;
+    naval.SEA_Y = Math.floor(h * 0.48);
+
+    naval.playerShip.x  = Math.floor(naval.W / 2 - naval.playerShip.w / 2);
+    naval.playerShip.y  = naval.SEA_Y + 8;
+    naval.playerShip.hp = naval.playerShip.maxHp;
+    naval.enemies     = [];
+    naval.projectiles = [];
+    naval.enemyShots  = [];
+    naval.explosions  = [];
+    naval.sunk = 0; naval.bonusXP = 0; naval.bonusGold = 0;
+    naval.fireCooldown = 0; naval.frame = 0; naval.timer = 60;
+
+    // Spawn enemies spread across the top
+    for (let i = 0; i < 5; i++) spawnNavalEnemy();
+    updateNavalHUD();
+
+    if (naval.timerInterval) { clearInterval(naval.timerInterval); naval.timerInterval = null; }
+    naval.timerInterval = setInterval(navalTick, 1000);
+
+    if (naval.animId) { cancelAnimationFrame(naval.animId); naval.animId = null; }
+    naval.animId = requestAnimationFrame(navalLoop);
+
+    addLog('⚓ Naval engagement! Sink enemy ships for XP and gold!', 'info');
+  }
+
+  // Try immediately; if layout hasn't resolved yet, wait one frame
+  if (document.getElementById('naval-canvas-wrap').offsetWidth > 0) {
+    initNavalCanvas();
+  } else {
+    requestAnimationFrame(initNavalCanvas);
+  }
+}
+
+function exitNaval() {
+  if (naval.timerInterval) { clearInterval(naval.timerInterval); naval.timerInterval = null; }
+  if (naval.animId)        { cancelAnimationFrame(naval.animId); naval.animId = null; }
+
+  document.getElementById('naval-screen').classList.remove('active');
+  document.getElementById('game-screen').classList.add('active');
+
+  // Award rewards
+  if (naval.bonusXP > 0 || naval.bonusGold > 0) {
+    player.xp   += naval.bonusXP;
+    player.gold += naval.bonusGold;
+    addLog(`⚓ Naval battle complete! +${naval.bonusXP} XP +${naval.bonusGold}💰`, 'xp');
+    checkLevelUp();
+  } else {
+    addLog('⚓ Retreated from naval engagement.', 'info');
+  }
+
+  // Reposition player near the portal
+  player.x = NAVAL_PORTAL.x + NAVAL_PORTAL.radius + 50;
+  player.y = NAVAL_PORTAL.y + 30;
+  player.moving = false;
+  NAVAL_PORTAL.exitCooldown = Date.now();
+  NAVAL_PORTAL.active = false;
+  NAVAL_PORTAL.nextOpenAt = Date.now() + NAVAL_PORTAL.CYCLE_MS;
+
+  // Resize main canvas now that the game screen is visible again, then sync HUD
+  requestAnimationFrame(() => {
+    resizeCanvas();
+    updateCamera();
+    updateHUD();
+  });
+}
+
+function navalTick() {
+  naval.timer--;
+  document.getElementById('naval-timer').textContent = naval.timer;
+  if (naval.timer % 12 === 0) spawnNavalEnemy();
+  if (naval.timer <= 0) {
+    clearInterval(naval.timerInterval); naval.timerInterval = null;
+    naval.bonusXP += 30; naval.bonusGold += 20;
+    updateNavalHUD();
+    setTimeout(exitNaval, 1500);
+  }
+}
+
+function spawnNavalEnemy() {
+  const type = SHIP_TYPES[Math.floor(Math.random() * SHIP_TYPES.length)];
+  const side = Math.random() < 0.5 ? -1 : 1;
+  // Start just off the edge so they sail in immediately
+  const startX = side === -1 ? -type.w : naval.W;
+  // Place on the sea surface, in the top half of the sea band
+  const y = naval.SEA_Y - type.h - 2 - Math.random() * 20;
+  naval.enemies.push({
+    name: type.name, hp: type.hp, maxHp: type.hp,
+    speed: type.speed, xp: type.xp, gold: type.gold,
+    w: type.w, h: type.h,
+    x: startX, y: y,
+    dir: side,
+    shotTimer: 40 + Math.random() * 60,
+    id: Math.random(),
+  });
+}
+
+function navalMove(dir) {
+  const w = naval.W || document.getElementById('naval-canvas').width;
+  naval.playerShip.x = Math.max(0, Math.min(w - naval.playerShip.w, naval.playerShip.x + dir * 21));
+}
+
+function navalFire() {
+  if (naval.fireCooldown > 0) return;
+  naval.projectiles.push({ x: naval.playerShip.x + naval.playerShip.w / 2, y: naval.playerShip.y - 5, vy: -9, vx: 0, life: 90 });
+  naval.fireCooldown = 18;
+}
+
+function navalLoop() {
+  naval.frame++;
+  if (naval.fireCooldown > 0) naval.fireCooldown--;
+
+  // Continuous keyboard movement
+  if (keys['ArrowLeft']  || keys['a'] || keys['A']) navalMove(-1);
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) navalMove(1);
+  if (keys[' '] || keys['ArrowUp'] || keys['w'] || keys['W']) navalFire();
+  // Move enemies
+  const liveW = naval.W || document.getElementById('naval-canvas').width;
+  naval.enemies.forEach(e => {
+    e.x += e.dir * e.speed;
+    if (e.x < -e.w * 2) e.dir = 1;
+    if (e.x > liveW + e.w) e.dir = -1;
+    e.shotTimer--;
+    if (e.shotTimer <= 0) {
+      e.shotTimer = 70 + Math.random() * 80;
+      naval.enemyShots.push({ x: e.x + e.w/2, y: e.y + e.h, vy: 5 + Math.random()*2, vx: (naval.playerShip.x + 40 - (e.x + e.w/2)) * 0.015, life: 70 });
+    }
+  });
+  // Move projectiles
+  naval.projectiles = naval.projectiles.filter(p => p.life-- > 0);
+  naval.projectiles.forEach(p => { p.x += p.vx; p.y += p.vy; });
+  naval.enemyShots = naval.enemyShots.filter(s => s.life-- > 0);
+  naval.enemyShots.forEach(s => { s.x += s.vx; s.y += s.vy; });
+  // Hit detection — player shots vs enemies
+  naval.projectiles.forEach(p => {
+    naval.enemies.forEach((e, ei) => {
+      if (p.life > 0 && p.x > e.x && p.x < e.x+e.w && p.y > e.y && p.y < e.y+e.h) {
+        p.life = 0; e.hp--;
+        naval.explosions.push({ x: p.x, y: p.y, life: 25, r: 15 });
+        if (e.hp <= 0) {
+          naval.explosions.push({ x: e.x+e.w/2, y: e.y+e.h/2, life: 45, r: 32 });
+          naval.bonusXP += e.xp; naval.bonusGold += e.gold; naval.sunk++;
+          naval.enemies.splice(ei, 1);
+          updateNavalHUD(); spawnNavalEnemy();
+        }
+      }
+    });
+  });
+  // Enemy shots vs player
+  const ps = naval.playerShip;
+  naval.enemyShots.forEach(s => {
+    if (s.life > 0 && s.x > ps.x && s.x < ps.x+ps.w && s.y > ps.y && s.y < ps.y+ps.h) {
+      s.life = 0; ps.hp = Math.max(0, ps.hp - 1);
+      naval.explosions.push({ x: s.x, y: s.y, life: 25, r: 18 });
+      if (ps.hp <= 0) {
+        clearInterval(naval.timerInterval); naval.timerInterval = null;
+        addLog('💥 Ship sunk! Retreating with reduced HP.', 'dmg');
+        player.hp = Math.max(1, player.hp - 20);
+        setTimeout(exitNaval, 1200);
+      }
+    }
+  });
+  naval.explosions = naval.explosions.filter(e => e.life-- > 0);
+  drawNavalScene();
+  naval.animId = requestAnimationFrame(navalLoop);
+}
+
+function drawNavalScene() {
+  const nc = document.getElementById('naval-canvas');
+  const cx = nc.getContext('2d');
+  const W = nc.width, H = nc.height;
+  if (!W || !H) return;
+  const SEA = naval.SEA_Y || Math.floor(H * 0.48);
+  const ps = naval.playerShip;   // was missing — caused ReferenceError every frame
+  cx.clearRect(0, 0, W, H);
+
+  // Sky
+  const sky = cx.createLinearGradient(0, 0, 0, SEA);
+  sky.addColorStop(0, '#1a3a6b'); sky.addColorStop(0.6, '#2e6da4'); sky.addColorStop(1, '#4a8fc4');
+  cx.fillStyle = sky; cx.fillRect(0, 0, W, SEA);
+
+  // Clouds
+  cx.fillStyle = 'rgba(255,255,255,0.13)';
+  for (let i = 0; i < 5; i++) {
+    const cx2 = ((i * 200 + naval.frame * 0.25) % (W + 150)) - 60;
+    const cy2 = 28 + i * 20;
+    cx.beginPath(); cx.ellipse(cx2, cy2, 55, 18, 0, 0, Math.PI*2); cx.fill();
+    cx.beginPath(); cx.ellipse(cx2+28, cy2-9, 38, 14, 0, 0, Math.PI*2); cx.fill();
+  }
+
+  // Horizon glow
+  const hor = cx.createLinearGradient(0, SEA-30, 0, SEA+30);
+  hor.addColorStop(0, 'rgba(255,180,50,0.14)'); hor.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.fillStyle = hor; cx.fillRect(0, SEA-30, W, 60);
+
+  // Sea
+  const seaG = cx.createLinearGradient(0, SEA, 0, H);
+  seaG.addColorStop(0, '#1565c0'); seaG.addColorStop(0.4, '#0d47a1'); seaG.addColorStop(1, '#062a6e');
+  cx.fillStyle = seaG; cx.fillRect(0, SEA, W, H - SEA);
+
+  // Waves
+  cx.strokeStyle = 'rgba(100,180,255,0.22)'; cx.lineWidth = 1.5;
+  for (let w = 0; w < 6; w++) {
+    const wy = SEA + 8 + w * 12;
+    cx.beginPath();
+    for (let x = 0; x < W; x += 4) {
+      const y = wy + Math.sin((x + naval.frame * 2 + w * 30) * 0.04) * 4;
+      x === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
+    }
+    cx.stroke();
+  }
+
+  // Enemy ships
+  naval.enemies.forEach(e => {
+    cx.save();
+    // Hull
+    cx.fillStyle = '#b71c1c';
+    cx.beginPath(); cx.roundRect(e.x, e.y + e.h * 0.4, e.w, e.h * 0.6, [0,0,4,4]); cx.fill();
+    // Superstructure
+    cx.fillStyle = '#c62828';
+    cx.fillRect(e.x + e.w*0.2, e.y + e.h*0.1, e.w*0.5, e.h*0.35);
+    // Funnel
+    cx.fillStyle = '#37474f';
+    cx.fillRect(e.x + e.w*0.35, e.y, e.w*0.12, e.h*0.2);
+    // Smoke
+    for (let s = 0; s < 3; s++) {
+      const st = (naval.frame * 0.5 + s * 8) % 30;
+      cx.beginPath();
+      cx.arc(e.x + e.w*0.41, e.y - st*0.8, 3 + s*2, 0, Math.PI*2);
+      cx.fillStyle = `rgba(80,80,80,${0.4 - st*0.012})`;
+      cx.fill();
+    }
+    // Cannon flash
+    cx.fillStyle = '#ef5350';
+    cx.fillRect(e.x + e.w * (e.dir > 0 ? 0.05 : 0.75), e.y + e.h*0.3, e.w*0.2, e.h*0.1);
+    // HP bar
+    cx.fillStyle = 'rgba(0,0,0,0.5)'; cx.fillRect(e.x, e.y - 9, e.w, 5);
+    cx.fillStyle = '#ef5350'; cx.fillRect(e.x, e.y - 9, e.w * (e.hp/e.maxHp), 5);
+    cx.font = '8px Crimson Text'; cx.fillStyle = 'rgba(255,150,150,0.85)';
+    cx.textAlign = 'center'; cx.fillText(e.name, e.x + e.w/2, e.y - 11);
+    cx.restore();
+  });
+
+  // Player ship (Calypso)
+  cx.save();
+  cx.fillStyle = '#1565c0';
+  cx.beginPath(); cx.roundRect(ps.x, ps.y + ps.h*0.4, ps.w, ps.h*0.6, [0,0,6,6]); cx.fill();
+  cx.fillStyle = '#1976d2';
+  cx.fillRect(ps.x + ps.w*0.15, ps.y + ps.h*0.1, ps.w*0.55, ps.h*0.35);
+  cx.fillStyle = '#263238';
+  cx.fillRect(ps.x + ps.w*0.3, ps.y - ps.h*0.1, ps.w*0.1, ps.h*0.25);
+  // Flag
+  cx.fillStyle = '#1565c0';
+  cx.fillRect(ps.x + ps.w*0.3, ps.y - ps.h*0.1 - 10, 14, 9);
+  // Label
+  cx.font = 'bold 9px Cinzel, serif'; cx.fillStyle = '#4fc3f7';
+  cx.textAlign = 'center'; cx.fillText('CALYPSO', ps.x + ps.w/2, ps.y - 12);
+  // HP pips
+  for (let i = 0; i < ps.maxHp; i++) {
+    cx.beginPath(); cx.arc(ps.x + 10 + i*16, ps.y - 4, 5, 0, Math.PI*2);
+    cx.fillStyle = i < ps.hp ? '#69f0ae' : '#37474f'; cx.fill();
+  }
+  cx.restore();
+
+  // Player cannonballs
+  naval.projectiles.forEach(p => {
+    cx.beginPath(); cx.arc(p.x, p.y, 5, 0, Math.PI*2);
+    cx.fillStyle = '#ffd700'; cx.shadowColor = '#ffd700'; cx.shadowBlur = 8; cx.fill(); cx.shadowBlur = 0;
+  });
+
+  // Enemy shots
+  naval.enemyShots.forEach(s => {
+    cx.beginPath(); cx.arc(s.x, s.y, 4, 0, Math.PI*2);
+    cx.fillStyle = '#ef5350'; cx.shadowColor = '#ef5350'; cx.shadowBlur = 6; cx.fill(); cx.shadowBlur = 0;
+  });
+
+  // Explosions
+  naval.explosions.forEach(e => {
+    const alpha = e.life / 40;
+    const r = e.r * (1.2 - e.life / 40);
+    const g = cx.createRadialGradient(e.x, e.y, 0, e.x, e.y, Math.max(1, r));
+    g.addColorStop(0, `rgba(255,255,150,${alpha})`);
+    g.addColorStop(0.5, `rgba(255,120,0,${alpha*0.7})`);
+    g.addColorStop(1, 'rgba(100,0,0,0)');
+    cx.beginPath(); cx.arc(e.x, e.y, Math.max(1, r), 0, Math.PI*2);
+    cx.fillStyle = g; cx.fill();
+  });
+
+  // Low-time warning flash
+  if (naval.timer <= 10 && naval.timer > 0) {
+    cx.fillStyle = `rgba(239,83,80,${0.07 + Math.sin(naval.frame * 0.25) * 0.05})`;
+    cx.fillRect(0, 0, W, H);
+  }
+}
+
+function updateNavalHUD() {
+  document.getElementById('naval-timer').textContent = naval.timer;
+  document.getElementById('naval-sunk').textContent = naval.sunk;
+  document.getElementById('naval-xp').textContent = naval.bonusXP;
+  document.getElementById('naval-gold-earned').textContent = naval.bonusGold;
+}
+
+// INIT
+initTitleBubbles();
+</script>
+</body>
+</html>
